@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Moein Bagheri · Speech &amp; Audio AI</title>
+<meta name="description" content="Moein Bagheri builds AI that listens: machine learning for speech, audio and language, starting with Persian–English speech.">
+<link rel="canonical" href="https://moeinbagheri.com/">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Moein Bagheri · Speech & Audio AI">
+<meta property="og:description" content="I build AI that listens. Machine learning for speech, audio and language.">
+<meta property="og:url" content="https://moeinbagheri.com/">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&family=Public+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="site.css">
+</head>
+<body>
+<div class="wrap">
+  <header class="bar">
+    <a class="mark" href="#top">Moein Bagheri</a>
+    <nav class="nav" aria-label="Main">
+      <a href="#work">Work</a>
+      <a href="#path">Path</a>
+      <a href="#music">Music</a>
+      <a href="cv/">CV</a>
+    </nav>
+  </header>
+
+  <main id="top">
+    <div class="hero">
+      <div>
+        <p class="eyebrow">Speech &amp; Audio AI · University of Isfahan</p>
+        <h1>I build AI that <em>listens</em>.</h1>
+        <p class="lede">I started out writing music and ended up in machine learning. Now I work on speech: models that recognise what people say and how they say it, starting with Persian–English speech, where today's systems still stumble.</p>
+        <div class="actions">
+          <button class="btn" id="mic" type="button" aria-pressed="false"><span class="dot"></span><span class="lbl">Say hello</span></button>
+          <button class="btn ghost" id="piano" type="button" aria-pressed="false">Play a piano phrase</button>
+        </div>
+        <p class="note" id="note" aria-live="polite"></p>
+      </div>
+
+      <figure class="frame">
+        <div class="scope">
+          <canvas id="spec" aria-label="Scrolling mel spectrogram"></canvas>
+          <div class="axis" id="axis"></div>
+        </div>
+        <figcaption class="meta">
+          <span class="live" id="status">idle · synthetic speech</span>
+          <span>mel scale · 60 Hz – 8 kHz · FFT 2048</span>
+        </figcaption>
+      </figure>
+    </div>
+
+    <section class="block" id="work">
+      <div class="head">
+        <h2>Selected work</h2>
+        <a href="https://github.com/Moein-Bagheri" target="_blank" rel="noopener">All projects on GitHub ↗</a>
+      </div>
+      <div class="work">
+        <article class="piece">
+          <span class="k">Speech · PyTorch · MFCC</span>
+          <a href="https://github.com/Moein-Bagheri/speech-emotion-recognition" target="_blank" rel="noopener"><h3>Speech emotion recognition</h3></a>
+          <p>1D CNNs that hear anger, happiness, sadness and calm in IEMOCAP speech, tested on speakers the model has never heard.</p>
+          <span class="fig">65.1% → 58.0% accuracy on unseen speakers</span>
+        </article>
+        <article class="piece">
+          <span class="k">Symbolic music · Language models</span>
+          <a href="https://github.com/Moein-Bagheri/ngram-music-completion" target="_blank" rel="noopener"><h3>Melodies as language</h3></a>
+          <p>Notes treated as words: unigram to trigram models complete short melodies, with smoothing tuned by cross-validation.</p>
+          <span class="fig">perplexity across n = 1, 2, 3</span>
+        </article>
+        <article class="piece">
+          <span class="k">Retrieval · Local LLM</span>
+          <a href="https://github.com/Moein-Bagheri/local-research-assistant" target="_blank" rel="noopener"><h3>Local research assistant</h3></a>
+          <p>A fully local RAG system over four retrieval papers that cites the PDF page behind every answer.</p>
+          <span class="fig">Ollama · FAISS · 6 research tools</span>
+        </article>
+      </div>
+      <ul class="more">
+        <li><a href="https://github.com/Moein-Bagheri/persian-information-retrieval" target="_blank" rel="noopener">Persian information retrieval</a><span>Hazm · inverted index · BM25</span></li>
+        <li><a href="https://github.com/Moein-Bagheri/deep-ecg-lab" target="_blank" rel="noopener">Deep ECG classification</a><span>GRU · MIT-BIH · PTBDB</span></li>
+        <li><a href="https://github.com/Moein-Bagheri/diatech-product-case" target="_blank" rel="noopener">DiaTech product discovery</a><span>User interviews · competitor analysis</span></li>
+      </ul>
+      <p class="now"><b>Now building:</b> Persian–English code-switched speech recognition, my final-year project.</p>
+    </section>
+
+    <section class="block" id="path">
+      <div class="head">
+        <h2>The path, as a piano roll</h2>
+        <span class="hint">Each note is a course. The gold line under it is the grade, like MIDI velocity.</span>
+      </div>
+      <div class="roll-scroll">
+        <div class="roll" id="roll" role="group" aria-label="Courses by semester and area"></div>
+      </div>
+      <div class="detail" id="detail" aria-live="polite"></div>
+      <p class="fine">A selection of courses from my B.Sc. in Computer Engineering at the University of Isfahan, grouped by how they lead to speech and audio AI. Grades are out of 20.</p>
+    </section>
+
+    <section class="block" id="music">
+      <div class="music">
+        <h2>Before code, there was music.</h2>
+        <div>
+          <p>I played classical piano and produced music in FL Studio through high school, and released an album. Somewhere in that process I realised that what I loved most was building things. Speech and audio AI is where the two meet.</p>
+          <p>"Lost" is the track I'm still proudest of.</p>
+          <iframe class="spotify" title="Lost on Spotify" src="https://open.spotify.com/embed/track/5XsByB4fuiNMkH6EoaS5tr?utm_source=generator" height="152" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>
+          <a class="small" href="https://open.spotify.com/track/5XsByB4fuiNMkH6EoaS5tr" target="_blank" rel="noopener">Open in Spotify ↗</a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <a class="mail" href="mailto:moeinbagheri.ai@gmail.com">moeinbagheri.ai@gmail.com</a>
+    <span><a href="https://github.com/Moein-Bagheri" target="_blank" rel="noopener">GitHub</a> · <a href="cv/">CV</a> · Isfahan, Iran</span>
+  </footer>
+</div>
+
+<script src="spectrogram.js"></script>
+<script src="path.js"></script>
+</body>
+</html>
