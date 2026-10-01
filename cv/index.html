@@ -1,0 +1,243 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Moein Bagheri · CV</title>
+<link rel="icon" href="../favicon.svg" type="image/svg+xml">
+<meta name="description" content="CV of Moein Bagheri, Computer Engineering student working on speech and audio AI.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Source+Sans+3:ital,wght@0,400;0,600;0,700;1,400&family=Source+Serif+4:opsz,wght@8..60,600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #1b1f24;
+    --muted: #5a6370;
+    --accent: #0f5c63;
+    --rule: #d5dadf;
+  }
+  @page { size: A4; margin: 14mm 15mm 14mm 15mm; }
+  * { box-sizing: border-box; }
+  html { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  body {
+    margin: 0 auto;
+    max-width: 180mm;
+    font-family: "Source Sans 3", "Segoe UI", Arial, sans-serif;
+    font-size: 10pt;
+    line-height: 1.38;
+    color: var(--ink);
+    background: #fff;
+  }
+  a { color: inherit; text-decoration: none; border-bottom: 0.5pt solid var(--rule); }
+
+  header { margin-bottom: 9pt; }
+  h1 {
+    font-family: "Source Serif 4", Georgia, serif;
+    font-weight: 600;
+    font-size: 22pt;
+    letter-spacing: 0.2pt;
+    margin: 0;
+    line-height: 1.1;
+  }
+  .tagline { color: var(--accent); font-weight: 600; font-size: 11pt; margin-top: 2pt; }
+  .contact { color: var(--muted); margin-top: 4pt; font-size: 9.5pt; }
+  .contact span + span::before { content: "·"; margin: 0 6pt; color: var(--rule); }
+
+  section { margin-top: 9pt; }
+  h2 {
+    font-size: 9pt;
+    font-weight: 700;
+    letter-spacing: 1.2pt;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin: 0 0 4pt;
+    padding-bottom: 2pt;
+    border-bottom: 0.75pt solid var(--rule);
+  }
+
+  .entry { margin-bottom: 6pt; break-inside: avoid; }
+  h2 { break-after: avoid; page-break-after: avoid; }
+  section.keep { break-inside: avoid; page-break-inside: avoid; }
+  .nowrap { white-space: nowrap; }
+  .row { display: flex; justify-content: space-between; gap: 10pt; align-items: baseline; }
+  .title { font-weight: 600; }
+  .meta { color: var(--muted); font-size: 9.5pt; white-space: nowrap; }
+  .sub { color: var(--muted); font-style: italic; }
+  ul { margin: 2pt 0 0; padding-left: 13pt; }
+  li { margin: 1pt 0; }
+  li::marker { color: var(--muted); }
+  p { margin: 0; }
+
+  .skills { display: grid; grid-template-columns: 30mm 1fr; row-gap: 2pt; column-gap: 8pt; }
+  .skills dt { font-weight: 600; }
+  .skills dd { margin: 0; }
+
+  .toolbar { display: none; }
+  @media screen {
+    .toolbar { display: flex; justify-content: space-between; gap: 12px; max-width: 180mm; margin: 24px auto -8px; font-size: 9.5pt; color: var(--muted); padding-inline: 4px; }
+    .toolbar a { border: 0; color: var(--accent); }
+    body { padding: 16mm 15mm; margin: 24px auto; box-shadow: 0 1px 8px rgba(0,0,0,.12); }
+    html { background: #eef0f2; }
+  }
+  @media screen and (max-width: 640px) {
+    body { padding: 20px 16px; margin: 0; box-shadow: none; }
+    .row { flex-direction: column; gap: 0; }
+    .meta { white-space: normal; }
+    .skills { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+<div class="toolbar"><a href="../">← moeinbagheri.com</a><a href="Moein-Bagheri-CV.pdf">Download PDF</a></div>
+
+<header>
+  <h1>Moein Bagheri</h1>
+  <div class="tagline">Building AI that listens · Speech &amp; Audio AI</div>
+  <div class="contact">
+    <span><a href="mailto:moeinbagheri.ai@gmail.com">moeinbagheri.ai@gmail.com</a></span>
+    <span><a href="https://moeinbagheri.com">moeinbagheri.com</a></span>
+    <span><a href="https://github.com/Moein-Bagheri">github.com/Moein-Bagheri</a></span>
+    <span>Isfahan, Iran</span>
+  </div>
+</header>
+
+<section>
+  <h2>Research Interests</h2>
+  <p>Speech recognition for low-resource and code-switched languages (Persian–English) · Spoken language understanding · Audio and music representation learning</p>
+</section>
+
+<section>
+  <h2>Education</h2>
+  <div class="entry">
+    <div class="row">
+      <span class="title">B.Sc. in Computer Engineering, University of Isfahan</span>
+      <span class="meta">Sep 2022 – Expected 2027</span>
+    </div>
+    <ul>
+      <li>GPA <b>17.26/20</b> overall · <b>18.5/20</b> over the last three semesters · <b>18.5/20</b> in specialized courses</li>
+      <li>Major track: Artificial Intelligence · Minor track: Information Technology</li>
+      <li>Selected courses: Signals &amp; Systems (20) · Language &amp; Speech Processing (20) · Design of Algorithms (20) · Data Mining (19.75) · Probability &amp; Statistics (19.25) · Applied Linear Algebra (18.87) · Deep Learning (18.5) · Information Retrieval (18.25) · Artificial Intelligence (18)</li>
+      <li>Final-year project (in progress): Persian–English code-switched speech recognition · Supervisor: Dr. S. F. Noorbehbahani</li>
+    </ul>
+  </div>
+  <div class="entry">
+    <div class="row">
+      <span class="title">NODET (SAMPAD) High School, Yazd</span>
+      <span class="meta">Diploma</span>
+    </div>
+    <p class="sub">Admitted through the national entrance exam for Iran's schools for exceptional talents</p>
+  </div>
+</section>
+
+<section>
+  <h2>Selected Projects</h2>
+
+  <div class="entry">
+    <div class="row">
+      <span class="title"><a href="https://github.com/Moein-Bagheri/speech-emotion-recognition">Speech Emotion Recognition</a></span>
+      <span class="meta">PyTorch · librosa · 2026</span>
+    </div>
+    <ul>
+      <li>Built plain and residual 1D CNNs on MFCC features to classify four emotions in an IEMOCAP subset.</li>
+      <li>Compared random and speaker-independent splits across six experiments: accuracy fell from 65.1% to 58.0% on unseen speakers, showing how random splits overstate generalization.</li>
+      <li>Released the trained checkpoints and a command-line predictor for WAV files.</li>
+    </ul>
+  </div>
+
+  <div class="entry">
+    <div class="row">
+      <span class="title"><a href="https://github.com/Moein-Bagheri/local-research-assistant">Local Research Assistant (RAG)</a></span>
+      <span class="meta">Ollama · FAISS · Streamlit · 2026</span>
+    </div>
+    <ul>
+      <li>Built a fully local question-answering system over four retrieval papers (REALM, DPR, RAG, FiD) that cites the PDF pages it draws on.</li>
+      <li>Routed requests to six research tools, with a keyword fallback when the model returns an invalid tool call.</li>
+    </ul>
+  </div>
+
+  <div class="entry">
+    <div class="row">
+      <span class="title"><a href="https://github.com/Moein-Bagheri/persian-information-retrieval">Persian Information Retrieval</a> <span class="sub">(with S. Heydari)</span></span>
+      <span class="meta">Python · Hazm · 2026</span>
+    </div>
+    <ul>
+      <li>Built a Persian search engine with Hazm preprocessing, an inverted index, Boolean retrieval and TF-IDF/BM25 ranking.</li>
+    </ul>
+  </div>
+
+  <div class="entry">
+    <div class="row">
+      <span class="title"><a href="https://github.com/Moein-Bagheri/ngram-music-completion">N-gram Music Completion</a></span>
+      <span class="meta">Python · 2026</span>
+    </div>
+    <ul>
+      <li>Modeled melodies as note-token sequences with unigram to trigram models, Lidstone smoothing tuned by leave-one-out cross-validation, and perplexity evaluation.</li>
+    </ul>
+  </div>
+
+  <div class="entry">
+    <div class="row">
+      <span class="title"><a href="https://github.com/Moein-Bagheri/deep-ecg-lab">Deep ECG Classification</a></span>
+      <span class="meta">TensorFlow · 2025</span>
+    </div>
+    <ul>
+      <li>Trained GRU networks for five-class heartbeat classification (MIT-BIH) and normal/abnormal classification (PTBDB).</li>
+    </ul>
+  </div>
+
+  <div class="entry">
+    <div class="row">
+      <span class="title"><a href="https://github.com/Moein-Bagheri/diatech-product-case">DiaTech: Product Discovery</a> <span class="sub">(team of four)</span></span>
+      <span class="meta">Startup Development course · 2025</span>
+    </div>
+    <ul>
+      <li>Extended the competitor analysis and ran user interviews for a type-2 diabetes self-care concept.</li>
+    </ul>
+  </div>
+
+  <p class="sub">More on GitHub: real-time hand gesture detection (YOLOv8), smile detection (MobileNetV2), neural style transfer (VGG19), text classification with word embeddings.</p>
+</section>
+
+<section class="keep">
+  <h2>Experience</h2>
+  <div class="entry">
+    <div class="row">
+      <span class="title">Computer Innovation Center, University of Isfahan</span>
+      <span class="meta">Aug 2025 – Present</span>
+    </div>
+    <p class="sub">Business Development Intern → Student Coordinator</p>
+    <ul>
+      <li>Conducted market research for two early-stage startup concepts: an online physiotherapy platform and a personalized children's storybook service.</li>
+      <li>Contributed to the design of the center's innovation workspace ahead of its opening in January 2026.</li>
+      <li>Took part in meetings with Hub Isfahan, Mobarakeh Steel's university partner, during its equipment partnership with the center.</li>
+      <li>Entrusted with day-to-day responsibility for the workspace.</li>
+    </ul>
+  </div>
+</section>
+
+<section>
+  <h2>Leadership</h2>
+  <ul>
+    <li>Hosted the Computer Engineering department's welcome ceremony for new students, at the faculty's invitation.</li>
+    <li>Organized Mathcup, an inter-school mathematics competition, in high school.</li>
+  </ul>
+</section>
+
+<section>
+  <h2>Skills</h2>
+  <dl class="skills">
+    <dt>Programming</dt><dd>Python, Java, C/C++, SQL, JavaScript</dd>
+    <dt>Speech &amp; ML</dt><dd>PyTorch, TensorFlow/Keras, scikit-learn, librosa, OpenCV, Ultralytics YOLO</dd>
+    <dt>NLP &amp; retrieval</dt><dd>Hazm, NLTK, FAISS, Ollama, retrieval-augmented generation</dd>
+    <dt>Tools</dt><dd>Git, Streamlit, Figma</dd>
+    <dt>Languages</dt><dd>Persian (native), English (fluent)</dd>
+  </dl>
+</section>
+
+<section>
+  <h2>Interests</h2>
+  <p>Piano (classical repertoire) · Music production in FL Studio and Ableton. Wrote and released an album on Spotify (<a class="nowrap" href="https://open.spotify.com/track/5XsByB4fuiNMkH6EoaS5tr">listen to "Lost"</a>).</p>
+</section>
+
+</body>
+</html>
