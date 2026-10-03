@@ -18,7 +18,7 @@
 
   const courses = [
     // Machine learning & language
-    { id: 'ml', lane: 'listen', term: 6, grade: 16.75, title: 'Machine Learning', skills: 'Modelling, optimisation, evaluation',
+    { id: 'ml', lane: 'listen', term: 6, grade: 16.75, title: 'Machine Learning', skills: 'Modeling, optimization, evaluation',
       projects: [['Machine learning labs', repo('math-and-ml-labs', 'machine-learning')], ['Neural style transfer', repo('neural-style-transfer')]] },
     { id: 'ai', lane: 'listen', term: 7, grade: 18, title: 'Artificial Intelligence', skills: 'Search, reinforcement learning, logical reasoning',
       projects: [['Classical AI projects', repo('classical-ai-projects')]] },
@@ -43,9 +43,9 @@
     { id: 'signals', lane: 'signal', term: 8, grade: 20, title: 'Signals & Systems', skills: 'Signal analysis, Fourier methods, the groundwork for audio processing', projects: [] },
 
     // Software & product
-    { id: 'sad', lane: 'product', term: 4, grade: 16.05, title: 'Systems Analysis & Design', skills: 'Requirements, system modelling',
+    { id: 'sad', lane: 'product', term: 4, grade: 16.05, title: 'Systems Analysis & Design', skills: 'Requirements, system modeling',
       projects: [['Chapar system design', repo('chapar-system-design')]] },
-    { id: 'db', lane: 'product', term: 5, grade: 13.44, title: 'Databases', skills: 'SQL, data modelling',
+    { id: 'db', lane: 'product', term: 5, grade: 13.44, title: 'Databases', skills: 'SQL, data modeling',
       projects: [['Database exercises', repo('software-systems-labs', 'databases')]] },
     { id: 'web', lane: 'product', term: 6, grade: 19.4, title: 'Web Programming', skills: 'HTML, CSS, JavaScript',
       projects: [['Web exercises', repo('software-systems-labs', 'web')]] },
@@ -70,15 +70,15 @@
     { id: 'algo', lane: 'found', term: 4, grade: 20, title: 'Design of Algorithms', skills: 'Algorithm design, complexity analysis', projects: [] },
     { id: 'automata', lane: 'found', term: 4, grade: 17.53, title: 'Theory of Languages & Automata', skills: 'Formal languages, automata', projects: [] },
     { id: 'arch', lane: 'found', term: 4, grade: 15.75, title: 'Computer Architecture', skills: 'Processor design', projects: [] },
-    { id: 'os', lane: 'found', term: 5, grade: 16.8, title: 'Operating Systems', skills: 'Scheduling, memory, synchronisation',
+    { id: 'os', lane: 'found', term: 5, grade: 16.8, title: 'Operating Systems', skills: 'Scheduling, memory, synchronization',
       projects: [['Operating systems exercises', repo('software-systems-labs', 'operating-systems')]] },
     { id: 'net', lane: 'found', term: 5, grade: 17.4, title: 'Computer Networks', skills: 'Protocols, sockets',
       projects: [['FTP client and server', repo('ftp-client-server')], ['Network exercises', repo('software-systems-labs', 'networks')]] },
     { id: 'archlab', lane: 'found', term: 5, grade: 14.2, title: 'Computer Architecture Lab', skills: 'VHDL, digital design',
       projects: [['VHDL exercises', repo('embedded-systems-labs', 'computer-architecture')]] },
-    { id: 'mplab', lane: 'found', term: 8, grade: 18, title: 'Microprocessor Lab', skills: 'STM32, hardware interfaces',
+    { id: 'mplab', lane: 'found', term: 8, grade: 18, title: 'Micro­processor Lab', skills: 'STM32, hardware interfaces',
       projects: [['STM32 projects', repo('embedded-systems-labs', 'microprocessor')]] },
-    { id: 'mp', lane: 'found', term: 9, kind: 'remaining', title: 'Microprocessors', status: 'Remaining', skills: 'Assembly, microprocessor systems', projects: [] },
+    { id: 'mp', lane: 'found', term: 9, kind: 'remaining', title: 'Micro­processors', status: 'Remaining', skills: 'Assembly, microprocessor systems', projects: [] },
   ];
 
   const velocity = g => Math.min(1, Math.max(0, g / 20));
@@ -149,4 +149,8 @@
     }
   }
   select('nlp');
+
+  // On narrow screens, open the roll at the latest semesters, where the lanes meet
+  const scroller = roll.parentElement;
+  requestAnimationFrame(() => { if (scroller.scrollWidth > scroller.clientWidth) scroller.scrollLeft = scroller.scrollWidth; });
 })();
