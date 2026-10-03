@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Silence · Moein Bagheri</title>
+<meta name="robots" content="noindex">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;1,500&family=Public+Sans:wght@400;500&family=JetBrains+Mono&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/site.css">
+<style>
+  .lost { padding-block: clamp(48px, 12vw, 140px); max-width: 40em; }
+  .flat { height: 2px; background: var(--rule); margin: 28px 0; position: relative; overflow: hidden; }
+  .flat::after { content: ""; position: absolute; inset: 0; width: 18%; background: linear-gradient(90deg, transparent, var(--ultramarine), transparent); animation: sweep 3.2s linear infinite; }
+  @keyframes sweep { from { transform: translateX(-100%); } to { transform: translateX(560%); } }
+  @media (prefers-reduced-motion: reduce) { .flat::after { animation: none; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="bar"><a class="mark" href="/">Moein Bagheri</a></header>
+  <main class="lost">
+    <p class="eyebrow">404 · 0 Hz – 8 kHz · −∞ dB</p>
+    <h1>Only <em>silence</em> here.</h1>
+    <div class="flat" aria-hidden="true"></div>
+    <p class="lede">There's nothing at this address. The page may have moved, or the link has a typo.</p>
+    <p class="quick"><a href="/">Back to the home page</a><a href="/cv/">CV</a></p>
+  </main>
+</div>
+</body>
+</html>
