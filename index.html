@@ -15,170 +15,232 @@
 <meta property="og:image:height" content="630">
 <meta property="og:image:alt" content="Moein Bagheri: I build AI that listens, over a mel spectrogram.">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="theme-color" content="#f2f3f0" media="(prefers-color-scheme: light)">
-<meta name="theme-color" content="#0c1120" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#070a14">
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&family=Public+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="site.css">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Public+Sans:wght@400;500&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="story.css">
+<script>
+  document.documentElement.classList.add('js');
+  // Failsafe: if the story script never starts, show everything as plain text
+  setTimeout(() => { const d = document.documentElement; if (!d.classList.contains('story-ready')) d.classList.remove('js'); }, 3500);
+</script>
 </head>
 <body>
-<div class="wrap">
-  <header class="bar">
-    <a class="mark" href="#top">Moein Bagheri</a>
-    <nav class="nav" aria-label="Main">
-      <a href="#work">Work</a>
-      <a href="#path">Path</a>
-      <a href="#music">Music</a>
-      <a href="#contact">Contact</a>
-      <a href="cv/">CV</a>
-    </nav>
-  </header>
+<canvas id="gl" aria-hidden="true"></canvas>
+<div class="vignette" aria-hidden="true"></div>
+<div class="grain" aria-hidden="true"></div>
 
-  <main id="top">
-    <div class="hero">
-      <div>
-        <p class="eyebrow">Speech &amp; Audio AI · University of Isfahan</p>
-        <h1>I build AI that <em>listens</em>.</h1>
-        <p class="lede">I started out writing music and ended up in machine learning. Now I work on speech: models that recognize what people say and how they say it, starting with Persian–English speech, where today's systems still stumble.</p>
-        <div class="actions">
-          <button class="btn" id="mic" type="button" aria-pressed="false"><span class="dot"></span><span class="lbl">Say hello</span></button>
-          <button class="btn ghost" id="piano" type="button" aria-pressed="false">Play a piano phrase</button>
+<header class="hud">
+  <a class="mark" href="/">Moein Bagheri</a>
+  <span class="where" id="where" aria-live="polite">00 · Silence</span>
+  <nav class="hud-r" aria-label="Shortcuts">
+    <button class="sound" id="sound" type="button" aria-pressed="true" aria-label="Sound">
+      <span class="bars" aria-hidden="true"><i></i><i></i><i></i><i></i></span><span class="lbl" aria-hidden="true">Sound on</span>
+    </button>
+    <a href="#work">Skip to work</a>
+    <a href="cv/">CV</a>
+  </nav>
+</header>
+
+<main id="story">
+
+  <section class="ch ch-silence" data-ch="0" data-name="Silence" style="--len: 170">
+    <div class="stage">
+      <div class="center">
+        <p class="eyebrow line">A story told in sound</p>
+        <h1 class="line">Every sound begins in <em>silence</em>.</h1>
+        <div class="line begin">
+          <button class="hear" id="begin" type="button"><span class="bars" aria-hidden="true"><i></i><i></i><i></i><i></i></span>Begin with sound</button>
+          <button class="quiet" id="quiet" type="button">or read it quietly</button>
         </div>
-        <p class="note" id="note" aria-live="polite">Speak, and watch your voice appear on the right.</p>
-        <p class="quick"><a href="cv/">CV</a><a href="https://github.com/Moein-Bagheri" target="_blank" rel="noopener">GitHub</a><a href="#contact">Contact</a></p>
+        <p class="cue line" aria-hidden="true">Scroll</p>
       </div>
+    </div>
+  </section>
 
-      <figure class="frame">
-        <div class="scope">
-          <canvas id="spec" aria-label="Scrolling mel spectrogram"></canvas>
-          <div class="axis" id="axis"></div>
-        </div>
-        <figcaption class="meta">
-          <span class="live" id="status">idle · synthetic speech</span>
-          <span>mel scale · 60 Hz – 8 kHz · FFT 2048</span>
-        </figcaption>
+  <section class="ch ch-yazd" data-ch="1" data-name="Yazd" style="--len: 250">
+    <div class="stage">
+      <div class="text">
+        <p class="num line">01</p>
+        <h2 class="line">I grew up in <em>Yazd</em>, a desert city in the heart of Iran.</h2>
+        <p class="line">In sixth grade, one excellent teacher opened a door. Three of us walked through it, into NODET, Iran's schools for gifted students.</p>
+        <p class="line">For three years I studied hard, mostly to prove to myself that I could.</p>
+      </div>
+      <figure class="photo p-right">
+        <img src="media/yazd-2009.jpg" alt="Moein as a young boy in a denim jacket, standing in front of a Nowruz table at school." loading="lazy" width="1400" height="971">
+        <figcaption>2009</figcaption>
       </figure>
     </div>
+  </section>
 
-    <section class="block" id="work">
-      <div class="head">
-        <h2>Selected work</h2>
-        <a href="https://github.com/Moein-Bagheri" target="_blank" rel="noopener">All projects on GitHub ↗</a>
+  <section class="ch ch-event" data-ch="2" data-name="The first event" data-stagger="26" style="--len: 340">
+    <div class="stage">
+      <div class="text">
+        <p class="num line">02</p>
+        <p class="line">Math Kangaroo, team math tournaments, my first TEDx: each one lit something in me.</p>
+        <h2 class="line">So I decided to <em>organize one</em> myself.</h2>
+        <p class="line">In ninth grade, with two friends beside me, I started <b>Bartarinha</b>, a team math competition between our school and our sister school for girls.</p>
+        <p class="line lesson">By the end, almost nothing was left of the budget. My first business lesson: passion lights the fire, but <em>only money keeps it burning</em>.</p>
       </div>
-      <div class="work">
-        <article class="piece">
-          <span class="k">Speech · PyTorch · MFCC</span>
-          <a href="https://github.com/Moein-Bagheri/speech-emotion-recognition" target="_blank" rel="noopener"><h3>Speech emotion recognition</h3></a>
-          <p>1D CNNs that recognize angry, happy, sad and neutral speech in IEMOCAP, tested on speakers the model has never heard.</p>
-          <figure class="mini">
-            <svg viewBox="0 0 300 70" role="img" aria-label="Accuracy of six runs: the random split scored 65.1 percent; five speaker-independent runs scored between 55.6 and 60.0 percent.">
-              <line class="ax" x1="10" y1="40" x2="290" y2="40"/>
-              <g class="tk"><line x1="10" y1="37" x2="10" y2="43"/><line x1="80" y1="37" x2="80" y2="43"/><line x1="150" y1="37" x2="150" y2="43"/><line x1="220" y1="37" x2="220" y2="43"/><line x1="290" y1="37" x2="290" y2="43"/></g>
-              <g class="tl"><text x="10" y="58">50%</text><text x="80" y="58">55%</text><text x="150" y="58">60%</text><text x="220" y="58">65%</text><text x="290" y="58">70%</text></g>
-              <g class="dots-u"><circle cx="88.4" cy="40" r="4.5"/><circle cx="106.2" cy="40" r="4.5"/><circle cx="112.1" cy="40" r="4.5"/><circle cx="122.4" cy="40" r="4.5"/><circle cx="150.6" cy="40" r="4.5"/></g>
-              <circle class="dot-g" cx="222" cy="40" r="5.5"/>
-              <text class="lb" x="119" y="22">unseen speakers</text>
-              <text class="lb lb-g" x="222" y="22">random split</text>
-            </svg>
-            <figcaption>Accuracy across six runs. Every speaker-independent run scored below the random split.</figcaption>
-          </figure>
-          <span class="fig">65.1% → 58.0% on unseen speakers, same model</span>
-        </article>
-        <article class="piece">
-          <span class="k">Persian music · Language models</span>
-          <a href="https://github.com/Moein-Bagheri/ngram-music-completion" target="_blank" rel="noopener"><h3>Melodies as language</h3></a>
-          <p>Notes from 41 Persian melodies, quarter-tones (koron) included, treated as words. N-gram models finish incomplete phrases, with smoothing tuned by leave-one-out cross-validation.</p>
-          <figure class="mini">
-            <svg viewBox="0 0 300 70" role="img" aria-label="Mean perplexity on five test phrases: unigram 6.9, bigram 4.7, trigram 4.0. Lower is better.">
-              <g class="tl tl-l"><text x="44" y="16">1-gram</text><text x="44" y="38">2-gram</text><text x="44" y="60">3-gram</text></g>
-              <rect class="bar" x="52" y="6" width="172.9" height="14" rx="2"/>
-              <rect class="bar" x="52" y="28" width="118.2" height="14" rx="2"/>
-              <rect class="bar bar-g" x="52" y="50" width="99.6" height="14" rx="2"/>
-              <g class="tl tl-v"><text x="230" y="17">6.9</text><text x="176" y="39">4.7</text><text x="157" y="61">4.0</text></g>
-            </svg>
-            <figcaption>Mean perplexity on five unfinished phrases (α = 0.5). Lower is better.</figcaption>
-          </figure>
-          <span class="fig">C B C D → C D C D C D …</span>
-        </article>
-        <article class="piece">
-          <span class="k">Retrieval · Local LLM</span>
-          <a href="https://github.com/Moein-Bagheri/local-research-assistant" target="_blank" rel="noopener"><h3>Local research assistant</h3></a>
-          <p>A fully local RAG system over four retrieval papers (REALM, DPR, RAG, FiD) that cites the PDF page behind every answer.</p>
-          <figure class="mini">
-            <ol class="flow" aria-label="Pipeline">
-              <li>PDF pages</li><li>chunks</li><li>MiniLM embeddings</li><li>FAISS search</li><li>Qwen2.5 1.5B</li><li class="end">answer + page refs</li>
-            </ol>
-            <figcaption>Everything runs on one laptop through Ollama. No cloud API.</figcaption>
-          </figure>
-          <span class="fig">6 research tools · CLI and Streamlit</span>
-        </article>
-      </div>
-      <ul class="more">
-        <li><a href="https://github.com/Moein-Bagheri/persian-information-retrieval" target="_blank" rel="noopener">Persian information retrieval</a><span>Hazm · inverted index · BM25</span></li>
-        <li><a href="https://github.com/Moein-Bagheri/deep-ecg-lab" target="_blank" rel="noopener">Deep ECG classification</a><span>GRU · MIT-BIH · PTBDB</span></li>
-        <li><a href="https://github.com/Moein-Bagheri/diatech-product-case" target="_blank" rel="noopener">DiaTech product discovery</a><span>User interviews · competitor analysis</span></li>
-      </ul>
-      <p class="now"><b>Now building:</b> Persian–English code-switched speech recognition, my final-year project.</p>
-    </section>
+      <figure class="photo p-right p-square" data-line="2">
+        <img src="media/high-school.jpg" alt="Moein in high school, in a checked shirt against a red shutter." loading="lazy" width="980" height="1024">
+        <figcaption>2021</figcaption>
+      </figure>
+    </div>
+  </section>
 
-    <section class="block" id="path">
-      <div class="head">
-        <h2>The path, as a piano roll</h2>
-        <span class="hint">Each note is a course. Blue notes lead to speech and audio; the gold line under a note is its grade, like MIDI velocity.</span>
-      </div>
-      <div class="roll-scroll">
-        <div class="roll" id="roll" role="group" aria-label="Courses by semester and area"></div>
-      </div>
-      <p class="roll-hint">Swipe sideways to see earlier semesters.</p>
-      <div class="detail" id="detail" aria-live="polite"></div>
-      <p class="fine">A selection of courses from my B.Sc. in Computer Engineering at the University of Isfahan, grouped by how they lead to speech and audio AI. Grades are out of 20.</p>
-    </section>
-
-    <section class="block" id="music">
-      <div class="music">
-        <h2>Before code, there was music.</h2>
-        <div>
-          <p>I played classical piano and produced music in FL Studio through high school, and released an album. Somewhere in that process I realized that what I loved most was building things. Speech and audio AI is where the two meet.</p>
-          <p>"Lost" is the track I'm still proudest of.</p>
-          <iframe class="spotify" title="Lost on Spotify" src="https://open.spotify.com/embed/track/5XsByB4fuiNMkH6EoaS5tr?utm_source=generator" height="152" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>
-          <a class="small" href="https://open.spotify.com/track/5XsByB4fuiNMkH6EoaS5tr" target="_blank" rel="noopener">Open in Spotify ↗</a>
+  <section class="ch ch-note" data-ch="3" data-name="The first note" data-stagger="16" style="--len: 300">
+    <div class="stage">
+      <div class="text">
+        <p class="num line">03</p>
+        <h2 class="line">In tenth grade I turned to <em>music</em>.</h2>
+        <p class="line">Classical piano, a third-place prize in Yazd, then songs of my own in FL Studio. In eleventh grade I released an album.</p>
+        <p class="line">That album changed my life, but music never became my path. Instead, everything I loved began to converge<span class="motion-only">, like these strings,</span> on one direction: engineering, where sound becomes signals.</p>
+        <p class="line big">This is <em>Lost</em>: a teenager's experiment, kept just as it was.</p>
+        <div class="line listen">
+          <button class="hear turn-on" id="hear" type="button"><span class="bars" aria-hidden="true"><i></i><i></i><i></i><i></i></span>Turn on sound to hear it</button>
+          <p class="now" aria-live="polite"><span class="bars" aria-hidden="true"><i></i><i></i><i></i><i></i></span><span id="nowtxt">Tuning in</span></p>
+          <p class="hint">Stay as long as you like. Scroll on whenever you're ready.</p>
+          <a class="spotify" href="https://open.spotify.com/track/5XsByB4fuiNMkH6EoaS5tr" target="_blank" rel="noopener">Listen on Spotify ↗</a>
         </div>
       </div>
-    </section>
+    </div>
+  </section>
 
-    <section class="block" id="contact">
-      <div class="contact">
-        <h2>Let's talk.</h2>
-        <div>
-          <p>I'm applying for research-based MSc programs in speech and audio machine learning, starting Fall 2027. If you work on speech recognition, low-resource languages or machine listening, I'd be glad to hear from you.</p>
-          <div class="mailrow">
-            <span class="mailtext" id="mailtext">moeinbagheri.ai@gmail.com</span>
-            <button class="btn ghost" id="copy" type="button">Copy email</button>
-            <a class="btn" href="mailto:moeinbagheri.ai@gmail.com">Write to me</a>
-          </div>
-          <p class="quick"><a href="cv/">CV</a><a href="cv/Moein-Bagheri-CV.pdf">CV as PDF</a><a href="https://github.com/Moein-Bagheri" target="_blank" rel="noopener">GitHub</a></p>
+  <section class="ch ch-turn" data-ch="4" data-name="The turn" data-stagger="20" style="--len: 340">
+    <div class="stage">
+      <div class="text">
+        <p class="num line">04</p>
+        <h2 class="line">Everyone expected a <em>doctor</em>.</h2>
+        <p class="line">I was on the road to medicine. In the year everyone studied for the entrance exam, I stepped off it to look for my own.</p>
+        <p class="line">I found it where I had started, as a kid who loved to build.</p>
+        <p class="line lesson">Then one sentence changed everything: <em>“Study computer engineering. Everything you love is there.”</em></p>
+        <p class="line">A year later, I was there: Computer Engineering, University of Isfahan.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="ch ch-listen" data-ch="5" data-name="Learning to listen" style="--len: 640">
+    <div class="stage">
+      <div class="text beat" data-stagger="16" data-span="160">
+        <p class="num line">05</p>
+        <h2 class="line">I arrived as an <em>artist</em>, not an engineer.</h2>
+        <p class="line">I had never written a line of code. I started from zero, followed artificial intelligence, and somewhere between Signals &amp; Systems and Speech Processing, the two halves of me met.</p>
+        <p class="line big">Music taught me to listen. Engineering taught me how a <em>machine</em> could.</p>
+        <p class="line gate-hint motion-only"><span class="by-mouse">Run your hand through the curtain.</span><span class="by-touch">Touch the curtain.</span><button class="sound-link" type="button" data-sound-on>Turn on sound</button></p>
+      </div>
+      <div class="beat" data-span="220" aria-hidden="true"></div>
+      <div class="roll-panel beat" data-stagger="10" data-span="150">
+        <div class="line roll-head">
+          <h3>The path, as a piano roll</h3>
+          <p>Each note is a course; the blue ones lead to sound. The gold line is the grade. Tap a note.</p>
+        </div>
+        <div class="line roll-scroll"><div class="roll" id="roll" role="group" aria-label="Courses by semester and area"></div></div>
+        <div class="line detail" id="detail" aria-live="polite"></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="ch ch-build" id="work" data-ch="6" data-name="Building" data-stagger="12" style="--len: 420">
+    <div class="stage">
+      <div class="build">
+        <div class="text">
+          <p class="num line">06</p>
+          <h2 class="line">I build things to <em>understand</em> them.</h2>
+          <p class="line">Models that listen to voices, melodies and words. And at the university's innovation center, I look after the space where new ideas begin.</p>
+          <p class="line"><a class="more-link" href="https://github.com/Moein-Bagheri" target="_blank" rel="noopener">All projects on GitHub ↗</a></p>
+        </div>
+        <div class="cards">
+          <article class="card line">
+            <span class="k">Speech · PyTorch · MFCC</span>
+            <h3><a href="https://github.com/Moein-Bagheri/speech-emotion-recognition" target="_blank" rel="noopener">Speech emotion recognition</a></h3>
+            <p>Can a model hear emotion in a stranger's voice? Less than it seems: 65.1% fell to 58.0% on unseen speakers.</p>
+            <figure class="mini">
+              <svg viewBox="0 0 300 70" role="img" aria-label="Accuracy of six runs: the random split scored 65.1 percent; five speaker-independent runs scored between 55.6 and 60.0 percent.">
+                <line class="ax" x1="10" y1="40" x2="290" y2="40"/>
+                <g class="tk"><line x1="10" y1="37" x2="10" y2="43"/><line x1="80" y1="37" x2="80" y2="43"/><line x1="150" y1="37" x2="150" y2="43"/><line x1="220" y1="37" x2="220" y2="43"/><line x1="290" y1="37" x2="290" y2="43"/></g>
+                <g class="tl"><text x="10" y="58">50%</text><text x="80" y="58">55%</text><text x="150" y="58">60%</text><text x="220" y="58">65%</text><text x="290" y="58">70%</text></g>
+                <g class="dots-u"><circle cx="88.4" cy="40" r="4.5"/><circle cx="106.2" cy="40" r="4.5"/><circle cx="112.1" cy="40" r="4.5"/><circle cx="122.4" cy="40" r="4.5"/><circle cx="150.6" cy="40" r="4.5"/></g>
+                <circle class="dot-g" cx="222" cy="40" r="5.5"/>
+                <text class="lb" x="119" y="22">unseen speakers</text>
+                <text class="lb lb-g" x="222" y="22">random split</text>
+              </svg>
+            </figure>
+          </article>
+          <article class="card line">
+            <span class="k">Persian music · Language models</span>
+            <h3><a href="https://github.com/Moein-Bagheri/ngram-music-completion" target="_blank" rel="noopener">Melodies as language</a></h3>
+            <p>Persian melodies read as language: n-gram models finish the phrase, quarter-tones and all.</p>
+            <figure class="mini">
+              <svg viewBox="0 0 300 70" role="img" aria-label="Mean perplexity on five test phrases: unigram 6.9, bigram 4.7, trigram 4.0. Lower is better.">
+                <g class="tl tl-l"><text x="44" y="16">1-gram</text><text x="44" y="38">2-gram</text><text x="44" y="60">3-gram</text></g>
+                <rect class="bar" x="52" y="6" width="172.9" height="14" rx="2"/>
+                <rect class="bar" x="52" y="28" width="118.2" height="14" rx="2"/>
+                <rect class="bar bar-g" x="52" y="50" width="99.6" height="14" rx="2"/>
+                <g class="tl tl-v"><text x="230" y="17">6.9</text><text x="176" y="39">4.7</text><text x="157" y="61">4.0</text></g>
+              </svg>
+            </figure>
+          </article>
+          <article class="card line">
+            <span class="k">Retrieval · Local LLM</span>
+            <h3><a href="https://github.com/Moein-Bagheri/local-research-assistant" target="_blank" rel="noopener">Local research assistant</a></h3>
+            <p>Answers drawn from research papers, each citing its page, running on one laptop.</p>
+            <ol class="flow" aria-label="Pipeline"><li>PDF pages</li><li>chunks</li><li>MiniLM</li><li>FAISS</li><li>Qwen2.5</li><li class="end">answer + page</li></ol>
+          </article>
+          <article class="card line">
+            <span class="k">Information retrieval</span>
+            <h3><a href="https://github.com/Moein-Bagheri/persian-information-retrieval" target="_blank" rel="noopener">Persian search engine</a></h3>
+            <p>Search for Persian text, ranked with BM25.</p>
+            <span class="fig">Hazm · inverted index · BM25</span>
+          </article>
         </div>
       </div>
-    </section>
-  </main>
+    </div>
+  </section>
 
-  <footer>
-    <a class="mail" href="mailto:moeinbagheri.ai@gmail.com">moeinbagheri.ai@gmail.com</a>
-    <span><a href="https://github.com/Moein-Bagheri" target="_blank" rel="noopener">GitHub</a> · <a href="cv/">CV</a> · Isfahan, Iran</span>
-  </footer>
-</div>
+  <section class="ch ch-now" data-ch="7" data-name="Now" data-stagger="16" style="--len: 320">
+    <div class="stage">
+      <div class="text">
+        <p class="num line">07</p>
+        <h2 class="line">We speak Persian, sprinkled with <em>English</em>.</h2>
+        <p class="line">Speech recognition still stumbles on it. Teaching it to keep up is my final-year project.</p>
+        <p class="line big">Say hello. This page is <em>listening</em>.</p>
+        <div class="line hello">
+          <button class="hear" id="mic" type="button" aria-pressed="false"><span class="bars" aria-hidden="true"><i></i><i></i><i></i><i></i></span><span class="lbl">Say hello</span></button>
+          <p class="fine" id="micnote" aria-live="polite">Your voice stays in your browser. Nothing is recorded or sent.</p>
+        </div>
+      </div>
+    </div>
+  </section>
 
-<script src="spectrogram.js"></script>
+  <section class="ch ch-next" data-ch="8" data-name="Next" data-stagger="12" style="--len: 240">
+    <div class="stage">
+      <div class="text">
+        <p class="num line">08</p>
+        <h2 class="line">Next, I want to go <em>deeper</em>.</h2>
+        <p class="line">A research MSc in speech and audio machine learning, from Fall 2027. If you work on how machines listen, I'd love to talk.</p>
+        <div class="line mailrow">
+          <span class="mailtext" id="mailtext">moeinbagheri.ai@gmail.com</span>
+          <button class="hear ghost" id="copy" type="button">Copy email</button>
+          <a class="hear" href="mailto:moeinbagheri.ai@gmail.com">Write to me</a>
+        </div>
+        <p class="line quick"><a href="cv/">CV</a><a href="cv/Moein-Bagheri-CV.pdf">CV as PDF</a><a href="https://github.com/Moein-Bagheri" target="_blank" rel="noopener">GitHub</a></p>
+      </div>
+      <figure class="photo p-right p-portrait" data-line="1">
+        <img src="media/today-2026.jpg" alt="Moein today, in a garden at night." loading="lazy" width="1100" height="1448">
+        <figcaption>2026</figcaption>
+      </figure>
+    </div>
+  </section>
+
+</main>
+
+<script src="vendor/gsap.min.js"></script>
+<script src="vendor/ScrollTrigger.min.js"></script>
+<script src="vendor/lenis.min.js"></script>
 <script src="path.js"></script>
-<script>
-  document.getElementById('copy').addEventListener('click', async (e) => {
-    const b = e.currentTarget, text = document.getElementById('mailtext').textContent;
-    try { await navigator.clipboard.writeText(text); b.textContent = 'Copied'; }
-    catch { const r = document.createRange(); r.selectNodeContents(document.getElementById('mailtext')); getSelection().removeAllRanges(); getSelection().addRange(r); b.textContent = 'Selected, press Ctrl+C'; }
-    setTimeout(() => { b.textContent = 'Copy email'; }, 2200);
-  });
-</script>
+<script type="module" src="story.js"></script>
 </body>
 </html>
