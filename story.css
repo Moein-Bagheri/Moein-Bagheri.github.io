@@ -105,6 +105,7 @@ h1, h2 { font-family: var(--display); font-weight: 400; margin: 0 0 22px; text-w
 h1 { font-size: clamp(2.8rem, 7vw, 5.6rem); line-height: 1.02; }
 h2 { font-size: clamp(2rem, 4vw, 3.1rem); line-height: 1.08; }
 h1 em, h2 em, .big em, .lesson em { font-style: italic; color: var(--ultramarine); }
+.text code { font-family: var(--mono); font-size: .9em; color: var(--gold); }
 .text p { margin: 0 0 16px; color: #c8cddb; }
 .text b { color: var(--fg); font-weight: 500; }
 .eyebrow { font-family: var(--mono); font-size: .72rem; letter-spacing: .2em; text-transform: uppercase; color: var(--muted); margin: 0 0 22px; }
@@ -152,11 +153,11 @@ h1 em, h2 em, .big em, .lesson em { font-style: italic; color: var(--ultramarine
   font-family: var(--mono); font-size: .66rem; letter-spacing: .3em; color: var(--muted); white-space: nowrap;
 }
 .photo figcaption::before { content: ""; display: inline-block; width: 18px; height: 1px; margin-right: 12px; vertical-align: middle; background: var(--gold); opacity: .75; }
-/* each sits right of the text, above the line or sheet of light at the bottom of its chapter */
+/* each sits right of the text, above the light at the bottom of its chapter */
 .p-right { right: clamp(24px, 9vw, 170px); top: 46%; height: min(40svh, 380px); aspect-ratio: 4 / 3; max-width: 36vw; transform: translateY(-50%); }
-.p-square { aspect-ratio: .957; top: 45%; height: min(46svh, 430px); }
+.p-tall { aspect-ratio: .9; top: 45%; height: min(39svh, 360px); }
 
-/* Chapter 3: no player. Lost arrives on its own when sound is on; otherwise one quiet invitation. */
+/* Chapter 2: no player. Lost arrives on its own when sound is on; otherwise one quiet invitation. */
 .listen { margin-top: 6px; display: flex; flex-wrap: wrap; align-items: center; gap: 10px 20px; }
 .listen .hear { order: 0; } .listen .now { order: 1; } .listen .spotify { order: 2; }
 .listen .hint { order: 3; flex-basis: 100%; }
@@ -186,34 +187,54 @@ h1 em, h2 em, .big em, .lesson em { font-style: italic; color: var(--ultramarine
 .sound-on .ch-note.is-playing .now { display: flex; }
 .ch-note.is-playing .hint { display: block; font-size: .88rem; color: var(--muted); }
 .back { color: var(--fg); text-underline-offset: 4px; }
-/* Chapter 5: the gate, then the course map on a dark glass panel (two beats in one stage) */
+/* Chapter 4: the gate, then the two roads on a dark glass panel (two beats in one stage) */
 .text .gate-hint { font-family: var(--mono); font-size: .72rem; letter-spacing: .08em; color: var(--muted); margin-top: 22px; }
 .gate-hint .by-touch { display: none; }
 @media (hover: none) { .gate-hint .by-mouse { display: none; } .gate-hint .by-touch { display: inline; } }
 .sound-link { font: inherit; letter-spacing: inherit; color: var(--gold); background: none; border: 0; padding: 0; margin-left: 14px; cursor: pointer; text-decoration: underline; text-underline-offset: 4px; }
 .sound-on .sound-link, .no-gl .gate-hint { display: none; }
 .beat { grid-area: 1 / 1; }
-.roll-panel { justify-self: center; width: min(1500px, 100%); position: relative; z-index: 3; }
-.roll-head { display: flex; align-items: baseline; justify-content: space-between; gap: 6px 28px; flex-wrap: wrap; margin-bottom: 12px; }
-.roll-head h3 { font-family: var(--display); font-weight: 400; font-size: clamp(1.6rem, 2.6vw, 2.1rem); margin: 0; }
-.roll-head p { margin: 0; color: var(--muted); font-size: .84rem; max-width: 42em; }
+.roads-panel { justify-self: center; width: min(1240px, 100%); position: relative; z-index: 3; }
+.roads-head { display: flex; align-items: baseline; justify-content: space-between; gap: 6px 28px; flex-wrap: wrap; margin-bottom: 12px; }
+.roads-head h3 { font-family: var(--display); font-weight: 400; font-size: clamp(1.6rem, 2.6vw, 2.1rem); margin: 0; }
+.roads-head p { margin: 0; color: var(--muted); font-size: .84rem; max-width: 42em; }
 .glass { background: rgba(10, 14, 26, .78); border: 1px solid var(--rule); -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); }
-.roll-scroll { overflow-x: auto; border: 1px solid var(--rule); background: rgba(10, 14, 26, .8); -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); }
-.roll { display: grid; grid-template-columns: 146px repeat(9, minmax(90px, 1fr)) 122px; min-width: 1100px; font-size: .86rem; }
-.roll .th { font-family: var(--mono); font-size: .72rem; color: var(--muted); padding: 8px 6px 7px; border-bottom: 1px solid var(--rule); text-align: center; }
-.roll .th.first { text-align: left; padding-left: 12px; }
-.roll .lane-name { font-family: var(--mono); font-size: .68rem; letter-spacing: .04em; text-transform: uppercase; color: var(--muted); padding: 8px 12px; border-bottom: 1px solid var(--rule); display: flex; align-items: center; }
-.roll .cell { padding: 4px 4px; border-bottom: 1px solid var(--rule); border-left: 1px solid var(--rule); display: flex; flex-direction: column; justify-content: center; gap: 3px; background: rgba(233, 235, 242, .025); min-width: 0; }
-.roll .cell.odd { background: transparent; }
-.note-btn { position: relative; font: 500 .75rem/1.15 var(--body); text-align: left; border: 0; border-radius: 3px; padding: 4px 7px 7px; cursor: pointer; color: var(--bg); background: #c8cddb; width: 100%; -webkit-hyphens: auto; hyphens: auto; }
-.note-btn::after { content: ""; position: absolute; left: 6px; bottom: 3px; height: 2px; width: calc((100% - 14px) * var(--v, 0)); background: var(--gold); border-radius: 1px; }
-.note-btn.listen { background: var(--ultramarine); color: #fff; }
-.note-btn.capstone { background: var(--gold); color: #1b1404; }
-.note-btn.capstone::after, .note-btn.remaining::after { display: none; }
-.note-btn.remaining { background: transparent; color: var(--muted); border: 1px dashed var(--muted); }
-.note-btn[aria-pressed="true"] { outline: 2px solid var(--gold); outline-offset: 2px; }
-.roll .dest { grid-row: 2 / span 4; grid-column: 11; border-left: 1px solid var(--rule); display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 12px; text-align: center; font-family: var(--display); font-style: italic; font-size: 1.45rem; line-height: 1.15; color: var(--ultramarine); }
-.roll .dest small { display: block; font-family: var(--mono); font-style: normal; font-size: .68rem; color: var(--muted); margin-top: 6px; }
+.roads-scroll { overflow-x: auto; overflow-y: hidden; border: 1px solid var(--rule); background: rgba(10, 14, 26, .8); -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); }
+/* The two roads draw themselves with the scroll (--draw runs from 0 to 1); each stop and its course arrive when the
+   road reaches them (--at), then the stretch they share, then where it leads */
+.roads { --draw: 1; position: relative; height: 360px; min-width: 880px; }
+.roads-svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+.road { fill: none; stroke-width: 2; stroke-linecap: round; stroke-dasharray: var(--len) var(--len); }
+.road-product, .road-ai { stroke-dashoffset: calc(var(--len) * (1 - min(1, var(--draw) / .8))); }
+.road-product { stroke: var(--gold); }
+.road-ai { stroke: var(--ultramarine); }
+.road-meet { stroke: var(--fg); stroke-width: 3; stroke-dashoffset: calc(var(--len) * (1 - clamp(0, (var(--draw) - .8) / .1, 1))); }
+.stop { stroke: #0a0e1a; stroke-width: 2; opacity: clamp(0, (var(--draw) - var(--at)) * 14, 1); }
+.stop-product { fill: var(--gold); }
+.stop-ai { fill: var(--ultramarine); }
+.roads .end { fill: var(--gold); opacity: clamp(0, (var(--draw) - .88) * 10, 1); filter: drop-shadow(0 0 7px rgba(232, 183, 74, .85)); }
+.road-name { position: absolute; transform: translate(calc(-100% - 12px), -50%); font: .62rem var(--mono); letter-spacing: .14em; text-transform: uppercase; opacity: clamp(0, var(--draw) * 12, 1); }
+.road-name-product { color: var(--gold); }
+.road-name-ai { color: #8fa5ff; }
+.chip {
+  position: absolute; transform: translate(-50%, -100%); white-space: nowrap; cursor: pointer;
+  font: 500 .76rem/1 var(--body); color: var(--fg); background: rgba(10, 14, 26, .92); border: 1px solid; border-radius: 999px; padding: 6px 10px;
+  opacity: clamp(0, (var(--draw) - var(--at)) * 14, 1);
+}
+.chip::after { content: ""; position: absolute; left: 50%; top: 100%; width: 1px; height: var(--stem, 8px); background: currentColor; opacity: .3; }
+.chip-ai { transform: translate(-50%, 0); }
+.chip-ai::after { top: auto; bottom: 100%; }
+.chip-product { border-color: rgba(232, 183, 74, .5); }
+.chip-ai { border-color: rgba(93, 124, 255, .65); }
+.chip:hover { border-color: var(--fg); }
+.chip-product[aria-pressed="true"] { background: var(--gold); border-color: var(--gold); color: #1b1404; }
+.chip-ai[aria-pressed="true"] { background: var(--ultramarine); border-color: var(--ultramarine); color: #fff; }
+.roads .dest {
+  position: absolute; transform: translateY(-50%); white-space: nowrap;
+  font-family: var(--display); font-style: italic; font-size: 1.5rem; line-height: 1.1; color: var(--fg);
+  opacity: clamp(0, (var(--draw) - .9) * 10, 1);
+}
+.roads .dest small { display: block; font-family: var(--mono); font-style: normal; font-size: .64rem; letter-spacing: .1em; color: var(--muted); margin-top: 6px; }
 .detail { border: 1px solid var(--rule); border-top: 0; background: rgba(10, 14, 26, .8); -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); padding: 14px 18px; display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 4px 24px; min-height: 112px; }
 .detail h3 { font-family: var(--display); font-weight: 500; font-size: 1.4rem; margin: 0; line-height: 1.15; }
 .detail .grade { font-family: var(--mono); font-size: 1.05rem; color: var(--gold); text-align: right; font-variant-numeric: tabular-nums; }
@@ -223,7 +244,7 @@ h1 em, h2 em, .big em, .lesson em { font-style: italic; color: var(--ultramarine
 .detail li a { color: var(--fg); text-decoration-color: var(--rule); text-underline-offset: 3px; }
 .detail li a:hover { color: var(--gold); }
 
-/* Chapter 6: projects as cards over the landscape */
+/* Chapter 5: projects as cards over the landscape */
 .build { display: grid; grid-template-columns: minmax(0, 25rem) minmax(0, 1fr); gap: clamp(24px, 4vw, 72px); align-items: center; width: 100%; }
 .cards { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; position: relative; z-index: 3; width: min(100%, 760px); justify-self: end; }
 .card { background: rgba(10, 14, 26, .76); border: 1px solid var(--rule); -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); padding: 14px 16px 14px; display: flex; flex-direction: column; gap: 7px; }
@@ -252,7 +273,7 @@ h1 em, h2 em, .big em, .lesson em { font-style: italic; color: var(--ultramarine
 .more-link { color: var(--muted); text-underline-offset: 4px; font-size: .92rem; }
 .more-link:hover { color: var(--fg); }
 
-/* Chapter 7: the microphone */
+/* Chapter 6: the microphone */
 .hello { margin-top: 4px; }
 .text .hello .fine { margin: 12px 0 0; font-size: .8rem; color: var(--muted); }
 .hear[aria-pressed="true"] { background: transparent; color: var(--gold); box-shadow: inset 0 0 0 1px var(--gold); }
@@ -260,7 +281,7 @@ h1 em, h2 em, .big em, .lesson em { font-style: italic; color: var(--ultramarine
 .hear[aria-pressed="true"] .bars i:nth-child(2) { animation-delay: -.3s; }
 .hear[aria-pressed="true"] .bars i:nth-child(3) { animation-delay: -.6s; }
 
-/* Chapter 8: contact */
+/* Chapter 7: contact */
 .mailrow { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 14px; margin: 22px 0 6px; }
 .mailtext { font-family: var(--mono); font-size: .95rem; color: var(--fg); user-select: all; margin-right: 6px; overflow-wrap: anywhere; }
 a.hear { text-decoration: none; }
@@ -271,7 +292,7 @@ a.hear { text-decoration: none; }
 .quick a:hover { color: var(--fg); }
 .p-portrait { aspect-ratio: .76; top: 44%; height: min(48svh, 460px); }
 /* scrollable panels take touch and wheel input even inside the overlapping chapters */
-.motion .ch .roll-scroll, .motion .ch .cards { pointer-events: auto; }
+.motion .ch .roads-scroll, .motion .ch .cards { pointer-events: auto; }
 
 /* words that point at the animation are left out when there is none */
 html:not(.motion) .motion-only { display: none; }
@@ -279,11 +300,11 @@ html:not(.motion) .motion-only { display: none; }
 .js .line { will-change: transform, opacity; }
 
 @media (max-height: 900px) and (min-width: 821px) {
-  .roll-head p, .detail .skills { display: none; }
+  .roads-head p, .detail .skills { display: none; }
   .detail { min-height: 96px; padding: 10px 18px; }
 }
 @media (max-height: 780px) and (min-width: 821px) {
-  .roll-panel { transform: scale(.8); transform-origin: 50% 0; }
+  .roads-panel { transform: scale(.85); transform-origin: 50% 0; }
   .detail .skills { display: none; }
 }
 @media (max-height: 720px) and (min-width: 821px) {
@@ -313,7 +334,8 @@ html:not(.motion) .motion-only { display: none; }
   .build { grid-template-columns: minmax(0, 1fr); gap: 14px; align-items: start; }
   .cards { display: flex; overflow-x: auto; scroll-snap-type: x mandatory; gap: 10px; width: 100%; justify-self: stretch; padding-bottom: 4px; }
   .card { flex: 0 0 84%; scroll-snap-align: start; }
-  .roll-head p { display: none; }
+  .roads-head p { display: none; }
+  .roads { height: 340px; }
   .detail { min-height: 0; padding: 10px 14px; }
   .detail .skills { display: none; }
   .vignette { background: linear-gradient(180deg, rgba(7, 10, 20, .8), rgba(7, 10, 20, .55) 62%, rgba(7, 10, 20, .15) 80%); }
@@ -331,5 +353,5 @@ html:not(.motion) .motion-only { display: none; }
   .ch { height: auto; }
   .stage { position: relative; height: auto; min-height: 100svh; overflow: visible; }
   .beat { grid-area: auto; }
-  .roll-panel { margin-top: 40px; }
+  .roads-panel { margin-top: 40px; }
 }
