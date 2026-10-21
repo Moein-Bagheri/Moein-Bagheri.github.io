@@ -1,5 +1,5 @@
 // Sound Journey: a particle field that changes shape with each chapter, scroll-driven text and photographs,
-// and optional sound: a quiet score in B major that hands over to "Lost" in chapter 3 and back.
+// and optional sound: a quiet score in B major that hands over to "Lost" in chapter 2 and back.
 import * as THREE from './vendor/three.module.min.js';
 
 const { gsap, ScrollTrigger, Lenis } = window;
@@ -12,7 +12,7 @@ const mobile = matchMedia('(max-width: 820px)').matches;
 const motion = !reduce && !short; // scroll choreography; otherwise the page is plain, readable text
 if (motion) root.classList.add('motion');
 const sections = [...document.querySelectorAll('.ch')];
-const STRINGS = mobile ? 6 : 8; // piano strings in chapter 3, one per frequency band of the music
+const STRINGS = mobile ? 6 : 8; // piano strings in chapter 2, one per frequency band of the music
 
 // Shared state, animated by scroll and read by the renderer every frame
 const state = { morph: 0, tremble: 0, pulse: 0, look: 0, peaks: 0, walk: 0, enter: 0, focus: 0, reveal: motion ? 0 : 1, fade: motion ? 0 : 1 };
@@ -23,9 +23,9 @@ let dirty = true; // reduced motion renders only when something changes
 
 // "Lost": streamed from its peak section to the end of the song, then round again (see the sound section)
 const lost = { el: null, active: false, fresh: true, stopTimer: 0, mix: 0 };
-// The visitor's microphone in chapter 7: analysed in the browser only, never recorded or sent
+// The visitor's microphone in chapter 6: analysed in the browser only, never recorded or sent
 const mic = { stream: null, src: null, analyser: null, data: null, wave: null, raw: 0, level: 0, bands: [0, 0, 0, 0] };
-// What chapter 7's sphere keeps of a voice: an engraving (moments round the sphere × pitch bands, fading), the sphere's
+// What chapter 6's sphere keeps of a voice: an engraving (moments round the sphere × pitch bands, fading), the sphere's
 // turn, and the melody of the last phrase. Only these numbers are kept, never the sound.
 const VW = 128, VH = 32;
 const voice = { level: new Float32Array(VW * VH), data: new Uint8Array(VW * VH * 4), dirty: false, any: false, spin: 0, play: -1, sing: 0, col: -1, phrase: null, quiet: 0, rewind: null, playing: null, playUntil: 0 };
@@ -54,7 +54,7 @@ function createField() {
   const SPAN = 4.2;
   const OX = mobile ? 0 : 1.5; // shapes sit right of the text column on wide screens
   const LY = mobile ? -2.75 : -1.6; // the line rests below the text
-  const p0 = new Float32Array(N * 3), p1 = new Float32Array(N * 3), p2 = new Float32Array(N * 3);
+  const p0 = new Float32Array(N * 3), p2 = new Float32Array(N * 3);
   const rnd = new Float32Array(N), str = new Float32Array(N), along = new Float32Array(N);
   const gauss = () => {
     let u = 0, v = 0;
@@ -65,15 +65,6 @@ function createField() {
   const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
   const lerp3 = (a, b, t) => [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t, a[2] + (b[2] - a[2]) * t];
 
-  // Page transform for the math sheet: a large grid laid flat like a tabletop under the chapter's photographs
-  // (on phones it stays smaller, below the text)
-  const tilt = new THREE.Matrix4().makeRotationX(mobile ? -0.95 : -1.22);
-  const turn = new THREE.Matrix4().makeRotationZ(0.14);
-  const grow = new THREE.Matrix4().makeScale(mobile ? 1 : 1.9, mobile ? 1 : 1.9, 1);
-  const page = new THREE.Matrix4().makeTranslation(mobile ? 0 : OX + 0.4, mobile ? -1.5 : -2.35, mobile ? 0 : -1.2)
-    .multiply(turn).multiply(tilt).multiply(grow);
-  const v = new THREE.Vector3();
-
   // A few fine piano strings receding far into the dark, seen from the keyboard: near ends low and apart, far ends
   // gathering toward one point. Bass strings (left) are the longest. Each string listens to its own band of the music.
   // (on phones they sit low on the right, clear of the text and the button)
@@ -81,7 +72,7 @@ function createField() {
   const far0 = mobile ? [0.75, -2.5, -11] : [2.55, 1.6, -16], far1 = mobile ? [0.95, -2.5, -9] : [3.05, 1.55, -12.5];
   const dust = mobile ? [0.8, -2.5, -4] : [2.4, 0, -6];
 
-  // Chapters 4 to 7, computed in the shader: the path continues the strings' line into the distance; the
+  // Chapters 3 to 6, computed in the shader: the path continues the strings' line into the distance; the
   // landscape lies low on the right and recedes; the sphere floats right of the text (below it on phones)
   const V = (a) => new THREE.Vector3(...a);
   const pathA = V(mobile ? [0.8, -3.05, 1.2] : [1.75, -1.85, 1.2]), pathB = V(mobile ? [0.9, -2.0, -20] : [3.9, 5.0, -30]);
@@ -95,28 +86,7 @@ function createField() {
     const lx = Math.random() < 0.62 ? gauss() * SPAN * 0.36 : (Math.random() * 2 - 1) * SPAN;
     p0.set([clamp(lx, -SPAN * 1.5, SPAN * 1.5), LY + gauss() * 0.012, gauss() * 0.08], i * 3);
 
-    // 1 · a sheet of math problems: a 3×3 grid with pencil marks
-    const S = 2.7, cell = S / 3, k = Math.random();
-    let gx, gy;
-    if (k < 0.6) {
-      const lines = [-1.5, -0.5, 0.5, 1.5];
-      const u = lines[(Math.random() * 4) | 0] * cell, t = (Math.random() * 3 - 1.5) * cell;
-      [gx, gy] = Math.random() < 0.5 ? [u, t] : [t, u];
-      gx += gauss() * 0.008; gy += gauss() * 0.008;
-    } else if (k < 0.86) {
-      const cx = (((Math.random() * 3) | 0) - 1) * cell, cy = (((Math.random() * 3) | 0) - 1) * cell;
-      const seed = Math.floor(cx * 7 + cy * 13);
-      const t = Math.random() * 2 - 1;
-      gx = cx + t * cell * 0.32;
-      gy = cy + Math.sin(t * 5 + seed) * cell * 0.08 + (((Math.random() * 3) | 0) - 1) * cell * 0.18;
-    } else {
-      gx = (Math.random() * 2 - 1) * S * 0.62;
-      gy = (Math.random() * 2 - 1) * S * 0.62;
-    }
-    v.set(gx, gy, gauss() * 0.01).applyMatrix4(page);
-    p1.set([v.x, v.y, v.z], i * 3);
-
-    // 2 · the strings; "along" runs from the near end (0) to the far end (1), and both ends are nodes.
+    // 1 · the strings; "along" runs from the near end (0) to the far end (1), and both ends are nodes.
     // Points crowd toward the near end, which covers more of the screen. Some points are motes of light
     // that leave a string and float up while it sounds (aStr = -1 - string); the rest is faint, distant dust.
     const r = Math.random();
@@ -133,7 +103,7 @@ function createField() {
     }
   }
 
-  // 4 · the gate (chapter 5): a Persian portal drawn in light, as on the old buildings of Yazd. A pointed arch with a
+  // 3 · the gate (chapter 4): a Persian portal drawn in light, as on the old buildings of Yazd. A pointed arch with a
   // cusped inner edge stands in a band of voussoirs; the frame around it carries an inscription made of bits, with a
   // twisted colonette at each side and a cresting along the top. In the spandrels, eight-pointed stars send circuit
   // traces out toward the frame, and a chip sits at the crown; lattice panels fill the foot of the frame, steps lead
@@ -460,7 +430,6 @@ function createField() {
 
   const geo = new THREE.BufferGeometry();
   geo.setAttribute('position', new THREE.BufferAttribute(p0, 3));
-  geo.setAttribute('aP1', new THREE.BufferAttribute(p1, 3));
   geo.setAttribute('aP2', new THREE.BufferAttribute(p2, 3));
   geo.setAttribute('aRand', new THREE.BufferAttribute(rnd, 1));
   geo.setAttribute('aStr', new THREE.BufferAttribute(str, 1));
@@ -469,7 +438,7 @@ function createField() {
   geo.setAttribute('aG', new THREE.BufferAttribute(g3, 1));
   geo.setAttribute('aQ', new THREE.BufferAttribute(q3, 1));
 
-  // the voice engraved on chapter 7's sphere (written by listen(), in the sound section)
+  // the voice engraved on chapter 6's sphere (written by listen(), in the sound section)
   const voiceTex = new THREE.DataTexture(voice.data, VW, VH, THREE.RGBAFormat);
   voiceTex.wrapS = THREE.RepeatWrapping;
   voiceTex.magFilter = voiceTex.minFilter = THREE.LinearFilter;
@@ -496,7 +465,7 @@ function createField() {
     depthWrite: false,
     blending: THREE.AdditiveBlending,
     vertexShader: /* glsl */ `
-      attribute vec3 aP1; attribute vec3 aP2; attribute float aRand; attribute float aStr; attribute float aU;
+      attribute vec3 aP2; attribute float aRand; attribute float aStr; attribute float aU;
       attribute vec4 aP3; attribute float aG; attribute float aQ;
       uniform float uTime, uMorph, uTremble, uReveal, uFade, uLevel, uMix, uStrings, uSize, uPixel, uSpan;
       uniform float uB[16], uP[16];
@@ -508,7 +477,7 @@ function createField() {
 
       float hsh(float n) { return fract(sin(n) * 43758.5453123); }
 
-      // 3 · one path: the strings close into a single stream of light that runs into the distance
+      // 2 · one path: the strings close into a single stream of light that runs into the distance
       float gA = 0.0;
       vec3 pathPos() {
         float a = fract(hsh(aRand * 311.7) + uTime * 0.03);
@@ -517,7 +486,7 @@ function createField() {
         return mix(uPathA, uPathB, pow(a, 0.75)) + vec3((hsh(aRand * 97.1) - 0.5) * 2.0, (hsh(aRand * 53.3) - 0.5) * 0.7, hsh(aRand * 29.7) - 0.5) * w;
       }
 
-      // 4 · the gate: arch, frame and ornament in fine lines of light, the windcatchers faint behind. The traces carry
+      // 3 · the gate: arch, frame and ornament in fine lines of light, the windcatchers faint behind. The traces carry
       // pulses of data toward the doorway, and the inscription reads itself slowly. The glow beyond the curtain spills
       // down the steps (brighter as the traveller nears, uDoor), and the traveller standing in it casts a shadow toward
       // us; each footstep leaves a ring of light on its step (uStep: where, and how long ago). When the traveller
@@ -577,7 +546,7 @@ function createField() {
         return p;
       }
 
-      // 5 · a spectrogram landscape: rows are moments rolling toward the viewer, across is pitch, height is energy.
+      // 4 · a spectrogram landscape: rows are moments rolling toward the viewer, across is pitch, height is energy.
       // The sound is voice-like: a gliding fundamental, its harmonics, and formants that move like vowels.
       float gH = 0.0, gD = 0.0, gPeak = 0.0;
       float spec(float f, float tau) {
@@ -593,7 +562,7 @@ function createField() {
       vec3 terrPos() {
         float row = floor(hsh(aRand * 173.3) * 48.0), x = hsh(aRand * 71.9), d = row / 47.0;
         float h = spec(x, row * 0.16 - uTime * 0.55) * 0.9 * (1.0 - 0.45 * uPeaks);
-        // chapter 6: a peak rises out of the sound for each project
+        // chapter 5: a peak rises out of the sound for each project
         float pk = 0.0;
         for (int k = 0; k < 4; k++) {
           float fk = float(k);
@@ -606,7 +575,7 @@ function createField() {
         return vec3(mix(uTerrA.x, uTerrB.x, x), uTerrA.y + h, mix(uTerrA.z, uTerrB.z, d));
       }
 
-      // 6 · a sphere that listens, like a phonograph's cylinder. While the visitor speaks it turns, and each moment of
+      // 5 · a sphere that listens, like a phonograph's cylinder. While the visitor speaks it turns, and each moment of
       // their voice is engraved round it as a ring of ridges: its spectrum, low pitches low on the sphere, high ones
       // high. A phrase becomes a shape that fades slowly. When they pause, the sphere turns back over the phrase and
       // sings its melody; where the playing passes (uPlay) the engraving glows. It breathes on its own, and trembles
@@ -627,14 +596,13 @@ function createField() {
         return uOrb + dir * uOrbR * (1.0 + uMic * 0.05 + bump);
       }
 
-      // the shapes in story order: line, sheet, strings, path, gate, landscape, sphere, and the line again
+      // the shapes in story order: line, strings, path, gate, landscape, sphere, and the line again
       vec3 shape(int i) {
-        if (i == 1) return aP1;
-        if (i == 2) return aP2;
-        if (i == 3) return pathPos();
-        if (i == 4) return gatePos();
-        if (i == 5) return terrPos();
-        if (i == 6) return orbPos();
+        if (i == 1) return aP2;
+        if (i == 2) return pathPos();
+        if (i == 3) return gatePos();
+        if (i == 4) return terrPos();
+        if (i == 5) return orbPos();
         return position;
       }
 
@@ -659,15 +627,14 @@ function createField() {
 
       void main() {
         float m = uMorph;
-        int seg = int(min(floor(m), 6.0));
+        int seg = int(min(floor(m), 5.0));
         vec3 p = travel(shape(seg), shape(seg + 1), m - float(seg));
-        float onLine = max(1.0 - clamp(m, 0.0, 1.0), clamp(m - 6.0, 0.0, 1.0));
-        float onGrid = max(0.0, 1.0 - abs(m - 1.0));
-        float onStrings = max(0.0, 1.0 - abs(m - 2.0));
-        float onPath = max(0.0, 1.0 - abs(m - 3.0));
-        float onGate = max(0.0, 1.0 - abs(m - 4.0));
-        float onTerr = max(0.0, 1.0 - abs(m - 5.0));
-        float onOrb = max(0.0, 1.0 - abs(m - 6.0));
+        float onLine = max(1.0 - clamp(m, 0.0, 1.0), clamp(m - 5.0, 0.0, 1.0));
+        float onStrings = max(0.0, 1.0 - abs(m - 1.0));
+        float onPath = max(0.0, 1.0 - abs(m - 2.0));
+        float onGate = max(0.0, 1.0 - abs(m - 3.0));
+        float onTerr = max(0.0, 1.0 - abs(m - 4.0));
+        float onOrb = max(0.0, 1.0 - abs(m - 5.0));
         float transit = sin(3.14159 * fract(m)); // 0 when a shape is complete, 1 halfway between two
         float give = mix(1.0, gGive, onGate);
         float held = 1.0 - onGate; // the gate stands still under the hand; only its curtain answers
@@ -739,7 +706,7 @@ function createField() {
         // the opening line draws outward from the centre
         float reach = uReveal * uSpan * 1.55;
         float drawn = mix(1.0, 1.0 - smoothstep(reach - 0.25, reach + 0.25, abs(position.x)), onLine);
-        vAlpha = (0.35 + aRand * 0.55) * uFade * drawn * (1.0 + glow * 0.6) * (1.0 - 0.5 * onGrid) * bright * (1.0 + transit * 0.35) * (1.0 + energy * 1.3 + ring * 1.2);
+        vAlpha = (0.35 + aRand * 0.55) * uFade * drawn * (1.0 + glow * 0.6) * bright * (1.0 + transit * 0.35) * (1.0 + energy * 1.3 + ring * 1.2);
         vGold = step(0.972, aRand) + glow * 0.55 + (mote ? onStrings * 0.6 : 0.0) + energy * 0.45 + ring * 0.45 + onGate * gGold + onTerr * gPeak * 0.9 + onOrb * (uMic * 0.3 + gVoice * 1.8);
         vSoft = max(soft * onStrings, gSoft * onGate);
       }
@@ -825,7 +792,7 @@ function createField() {
     return [new THREE.Vector3(...lerp3(near0, near1, f)), new THREE.Vector3(...lerp3(far0, far1, f))];
   });
   const pa = new THREE.Vector3(), pb = new THREE.Vector3(), lastPluck = new Float32Array(STRINGS);
-  const onStringsNow = () => Math.max(0, 1 - Math.abs(state.morph - 2));
+  const onStringsNow = () => Math.max(0, 1 - Math.abs(state.morph - 1));
   function pluck(k) {
     const now = performance.now();
     if (now - lastPluck[k] < 90) return;
@@ -929,7 +896,7 @@ function createField() {
   addEventListener('click', (e) => {
     if (reduce || e.target.closest('a, button')) return;
     const at = { x: (e.clientX / innerWidth) * 2 - 1, y: 1 - (e.clientY / innerHeight) * 2 };
-    if (1 - Math.abs(state.morph - 4) > 0.5) {
+    if (1 - Math.abs(state.morph - 3) > 0.5) {
       gate.click(at);
       return;
     }
@@ -942,7 +909,7 @@ function createField() {
     if (k >= 0) pluck(k);
     else clickNote(e.clientX / innerWidth);
   });
-  // a finger on the curtain (chapter 5) brushes it like the hand; elsewhere, touch only scrolls
+  // a finger on the curtain (chapter 4) brushes it like the hand; elsewhere, touch only scrolls
   const touch = { x: 0, y: 0, on: false };
   const onTouch = (e) => {
     const t = e.touches[0];
@@ -955,7 +922,7 @@ function createField() {
   addEventListener('touchmove', onTouch, { passive: true });
   ['touchend', 'touchcancel'].forEach((n) => addEventListener(n, () => { touch.on = false; }, { passive: true }));
 
-  // The curtain and the traveller (chapter 5). The curtain is strands of bits hanging from the arch: each strand is a
+  // The curtain and the traveller (chapter 4). The curtain is strands of bits hanging from the arch: each strand is a
   // chain of points under gravity (Verlet integration, links of fixed length, pinned at the top), drawn as glyphs
   // that turn with it. Read down a strand, the bits spell "hello, world" in ASCII, the first program most people
   // write. The hand brushes the strands and each one rings like a glass chime, in key (low on the left). The traveller
@@ -1407,7 +1374,7 @@ function createField() {
     }
 
     function update(dt) {
-      const m = state.morph, g = Math.max(0, 1 - Math.abs(m - 4)), exit = clamp(m - 4, 0, 1);
+      const m = state.morph, g = Math.max(0, 1 - Math.abs(m - 3)), exit = clamp(m - 3, 0, 1);
       if (g <= 0.002) {
         // out of sight: the curtain hangs still again for next time
         if (glyphs.visible) strands.forEach((st) => {
@@ -1503,7 +1470,7 @@ function createField() {
 
     // a click in the doorway: the bits nearby are thrown outward and scramble, and the nearest strands ring in turn
     function click(at) {
-      if (1 - Math.abs(state.morph - 4) < 0.6) return false;
+      if (1 - Math.abs(state.morph - 3) < 0.6) return false;
       onPlane(at.x, at.y);
       const u = (P.x - G0[0]) / GS, v = (P.y - G0[1]) / GS;
       if (Math.abs(u) > AR.a + 0.05 || v < -0.05 || v > archV(Math.min(Math.abs(u), AR.a)) + 0.05) return false;
@@ -1532,7 +1499,7 @@ function createField() {
     uniforms.uAspect.value = camera.aspect;
     camZ = w < h ? 12 : 9;
     camera.position.z = camZ;
-    // chapter 5's close view: the portal and its steps fill the height (on phones, the frame fills the width)
+    // chapter 4's close view: the portal and its steps fill the height (on phones, the frame fills the width)
     const tanH = uniforms.uTanHalf.value;
     focusD = Math.max((3.78 * GS * 1.24) / 2 / tanH, ((mobile ? 2.9 : 5) * GS * 1.08) / 2 / (tanH * camera.aspect));
     camera.updateProjectionMatrix();
@@ -1577,13 +1544,13 @@ function createField() {
       voice.dirty = false;
     }
     uniforms.uMicB.value.set(...mic.bands);
-    // chapter 5: while the traveller climbs, the camera comes in close on the gate; as the curtain parts it follows
+    // chapter 4: while the traveller climbs, the camera comes in close on the gate; as the curtain parts it follows
     // into the doorway, then (focus back to 0) returns to its place over the landscape
-    const F = state.focus, dive = F * clamp(state.morph - 4, 0, 1), gy = G0[1] + 1.35 * GS;
+    const F = state.focus, dive = F * clamp(state.morph - 3, 0, 1), gy = G0[1] + 1.35 * GS;
     if (!reduce) {
       // between chapters the camera swoops in with the particles; while "Lost" plays it leans in a little
       const t = uniforms.uTime.value, transit = Math.sin(Math.PI * (state.morph % 1));
-      const sway = ease(dt, 0.9), swoop = ease(dt, 0.35), loose = (1 - F * 0.6) * Math.min(1, Math.abs(state.morph - 4));
+      const sway = ease(dt, 0.9), swoop = ease(dt, 0.35), loose = (1 - F * 0.6) * Math.min(1, Math.abs(state.morph - 3));
       camera.position.x += ((pointer.x * 0.5 + Math.sin(t * 0.11) * 0.1 * lost.mix) * loose + G0[0] * F - camera.position.x) * sway;
       camera.position.y += ((-pointer.y * 0.3 + transit * 0.25) * loose + (gy - dive * 0.5 * GS) * F - camera.position.y) * sway;
       camera.position.z += (camZ * (1 - F) + (G0[2] + focusD - dive * (focusD - 1.6)) * F - lost.mix * 0.2 - transit * 1.1 * (1 - F * 0.5) - camera.position.z) * swoop;
@@ -1622,7 +1589,7 @@ function createField() {
 // The file runs from the first chord of Lost's peak section (2:27) to 4:31, where it fades out; then it
 // starts again from that chord. The full track is on Spotify.
 const LOST_URL = 'media/lost.mp3';
-const DRONE = [0.06, 0.14, 0.14, 0.11, 0.12, 0.13, 0.12, 0.07, 0.1];
+const DRONE = [0.06, 0.14, 0.11, 0.12, 0.13, 0.12, 0.07, 0.1];
 
 // The score: four chords in B major, one every 16 slow beats (about 14 s), voiced so that each voice moves
 // by a step or two: Bmaj9 – G♯m9 – Emaj9 – F♯9sus4, and home again. The piano plays short phrases inside
@@ -1717,7 +1684,7 @@ function ensureAudio() {
   chimeBus.connect(master);
   send(chimeBus, 0.6);
 
-  // The curtain's glass chimes (chapter 5), on their own brighter bus, with a short burst of noise for each touch
+  // The curtain's glass chimes (chapter 4), on their own brighter bus, with a short burst of noise for each touch
   const bellBus = ctx.createBiquadFilter();
   bellBus.type = 'lowpass';
   bellBus.frequency.value = 7000;
@@ -1927,7 +1894,7 @@ function clickNote(x) {
   piano(tones[Math.round(Math.min(1, Math.max(0, x)) * (tones.length - 1))], 0.04, now + 0.02, audio.chimeBus);
 }
 
-// The curtain in chapter 5 rings like glass chimes, tuned to the pentatonic notes of B major so it always sits
+// The curtain in chapter 4 rings like glass chimes, tuned to the pentatonic notes of B major so it always sits
 // inside the score: low strands on the left, high on the right. A strike is a few inharmonic partials of a struck
 // rod (with a slow beat between two of them), a breath of filtered noise for the touch, panned to where it hangs.
 const BELLS = [75, 78, 80, 83, 85, 87, 90, 92, 95]; // D♯5 to B6
@@ -1971,7 +1938,7 @@ function chime(x, v, pan) {
   setTimeout(() => out.disconnect(), (dur * 1.6 + 0.3) * 1000);
 }
 
-// Chapter 5's traveller: each step up to the gate sounds one soft note, rising through the pentatonic scale. Entering,
+// Chapter 4's traveller: each step up to the gate sounds one soft note, rising through the pentatonic scale. Entering,
 // the gold climbing the curtain sounds as a run of chimes; when it reaches the crown, the gate answers with a low
 // note and a chord.
 const STEP_NOTES = [59, 61, 63, 66, 68, 71];
@@ -2148,7 +2115,7 @@ document.addEventListener('visibilitychange', () => {
   else audio.ctx.resume();
 });
 
-// Chapter 7: "Say hello". The voice is analysed in the browser and shapes the sphere; nothing is recorded.
+// Chapter 6: "Say hello". The voice is analysed in the browser and shapes the sphere; nothing is recorded.
 const micBtn = document.getElementById('mic');
 const micNote = document.getElementById('micnote');
 async function micStart() {
@@ -2179,7 +2146,7 @@ function micStop() {
   micBtn.setAttribute('aria-pressed', 'false');
   micBtn.querySelector('.lbl').textContent = 'Say hello';
   micNote.textContent = 'Your voice stays in your browser. Nothing is recorded or sent.';
-  setDrone(DRONE[7]);
+  setDrone(DRONE[6]);
 }
 micBtn.addEventListener('click', () => (mic.stream ? micStop() : micStart()));
 
@@ -2221,7 +2188,7 @@ function readMic(dt) {
   dirty = true;
 }
 
-// Chapter 7's sphere, as a phonograph. While the visitor speaks it turns, and each moment of their voice is engraved
+// Chapter 6's sphere, as a phonograph. While the visitor speaks it turns, and each moment of their voice is engraved
 // at the point facing us: its spectrum in 32 bands from 90 Hz to 7 kHz. The pitch is followed as they speak. When they
 // pause after a phrase, the sphere turns back to where the phrase began and plays it as it was engraved, a little slower
 // than it was spoken, and sings a reply: the phrase's rhythm and the shape of its melody, set in the chords the score is
@@ -2538,7 +2505,7 @@ sections.forEach((sec, i) => {
   });
 });
 
-// Chapter 3 is where Lost lives: it plays for as long as the visitor stays, and hands back when they move on
+// Chapter 2 is where Lost lives: it plays for as long as the visitor stays, and hands back when they move on
 ScrollTrigger.create({
   trigger: noteSec, start: motion ? 'top top' : 'top 55%', end: motion ? 'bottom bottom' : 'bottom 45%',
   onToggle: (self) => {
@@ -2593,26 +2560,26 @@ function buildTimelines() {
   });
 
   // Particle shapes: each handover reports its own progress; the blend is computed every frame.
-  // Chapters 2, 3, 4, 7 and 8 each hand over to the next shape. Chapter 5 does it twice: the gate forms as the
-  // chapter arrives, and the viewer passes through it before the course map; in between, the figure climbs the
-  // steps and walks through the curtain. Chapter 6 raises peaks in the landscape instead.
-  const [, s1, s2, s3, s4, s5, s6, s7, s8] = sections;
+  // Chapters 2, 3, 6 and 7 each hand over to the next shape. Chapter 4 does it twice: the gate forms as the
+  // chapter arrives, and the viewer passes through it before the two roads; in between, the figure climbs the
+  // steps and walks through the curtain. Chapter 5 raises peaks in the landscape instead.
+  const [, s1, s2, s3, s4, s5, s6, s7] = sections;
   const track = (trigger, start, end) => ScrollTrigger.create({ trigger, start, end });
   const t1 = track(s1, 'top 20%', 'top -60%');
   // each handover is spread over about one screen of scroll, most of it after the new chapter arrives
   const turn = (sec) => track(sec, 'top 35%', 'top -75%');
-  const in5 = (from, to) => track(s5, `top ${-from}%`, `top ${-to}%`); // viewport heights into chapter 5
-  const turns = [turn(s2), turn(s3), turn(s4), turn(s5), in5(330, 395), turn(s7), turn(s8)];
-  // after its words, chapter 5 is a scene: the camera closes in, the traveller climbs and enters, the curtain parts
-  // and the camera follows; it pulls back out as the course map arrives
-  const tFocus = in5(125, 185), tWalk = in5(160, 270), tEnter = in5(270, 335), tUnfocus = in5(380, 430);
-  const tPeaks = track(s6, 'top 10%', 'bottom 60%');
+  const in4 = (from, to) => track(s4, `top ${-from}%`, `top ${-to}%`); // viewport heights into chapter 4
+  const turns = [turn(s2), turn(s3), turn(s4), in4(330, 395), turn(s6), turn(s7)];
+  // after its words, chapter 4 is a scene: the camera closes in, the traveller climbs and enters, the curtain parts
+  // and the camera follows; it pulls back out as the two roads arrive
+  const tFocus = in4(125, 185), tWalk = in4(160, 270), tEnter = in4(270, 335), tUnfocus = in4(380, 430);
+  const tPeaks = track(s5, 'top 10%', 'bottom 60%');
   const ease = (x) => x * x * (3 - 2 * x);
   // The particles follow the scroll with weight: whatever the wheel does, they glide toward where the story
   // is (time-based, so the feel is the same at any frame rate)
   const glide = (dt, seconds) => 1 - Math.exp(-dt / seconds);
   const follow = (dt) => {
-    const p = turns.map((t) => ease(t.progress)), pEnd = p[6];
+    const p = turns.map((t) => ease(t.progress)), pEnd = p[5];
     const tremble = ease(t1.progress) * (1 - p[0]);
     const morph = p.reduce((sum, x) => sum + x, 0);
     state.tremble += (tremble - state.tremble) * glide(dt, 0.35);
@@ -2620,7 +2587,7 @@ function buildTimelines() {
     state.walk += (tWalk.progress - state.walk) * glide(dt, 0.65);
     state.enter += (tEnter.progress - state.enter) * glide(dt, 0.65);
     state.focus += (ease(tFocus.progress) * (1 - ease(tUnfocus.progress)) - state.focus) * glide(dt, 0.8);
-    state.peaks += (ease(tPeaks.progress) * (1 - p[5]) - state.peaks) * glide(dt, 0.6);
+    state.peaks += (ease(tPeaks.progress) * (1 - p[4]) - state.peaks) * glide(dt, 0.6);
     // centred at the opening and the end; in between, the camera turns left so the shapes clear the text column
     state.look += (-0.5 * ease(t1.progress) * (1 - pEnd) - state.look) * glide(dt, 0.7);
     root.style.setProperty('--side', ((-state.look / 0.5) * (1 - state.focus)).toFixed(3));
@@ -2631,7 +2598,8 @@ function buildTimelines() {
   // Chapters: lines reveal one step at a time (data-stagger, in viewport heights of scroll; a chapter number
   // arrives with the line after it). Photos join at the step named by data-line. A chapter may be split into
   // beats that follow one another; the last chapter keeps its content on screen. Panels that hold controls
-  // (the course map, the project cards) are hidden completely when faded, so they never catch a stray click.
+  // (the two roads, the project cards) are hidden completely when faded, so they never catch a stray click. A
+  // drawing (data-draw) draws itself with the scroll as its beat arrives.
   const last = sections[sections.length - 1];
   sections.slice(1).forEach((sec) => {
     const len = parseFloat(sec.style.getPropertyValue('--len')) || 300;
@@ -2642,7 +2610,7 @@ function buildTimelines() {
     // beats share the chapter by their data-span (1 each unless set)
     const spans = groups.map((g) => parseFloat(g.dataset.span) || 1);
     const room = (1 - u(sec === last ? 6 : 24)) / spans.reduce((a, b) => a + b, 0);
-    const alpha = (el) => (el.matches('.roll-scroll, .detail, .card') ? 'autoAlpha' : 'opacity');
+    const alpha = (el) => (el.matches('.roads-scroll, .detail, .card') ? 'autoAlpha' : 'opacity');
     const fade = (els, at) => els.forEach((el) => tl.to(el, { [alpha(el)]: 0, y: el.classList.contains('photo') ? 0 : -40, duration: u(14), ease: 'power1.in' }, at));
     const shownEls = [];
 
@@ -2656,6 +2624,11 @@ function buildTimelines() {
         gsap.set(line, { [alpha(line)]: 0, y: 40, ...blurIn(8) });
         tl.to(line, { [alpha(line)]: 1, y: 0, ...blurOut, duration: u(22), ease: 'power2.out' }, start + u(4) + step * stagger);
         if (!line.classList.contains('num')) step++;
+      });
+
+      g.querySelectorAll('[data-draw]').forEach((el) => {
+        gsap.set(el, { '--draw': 0 });
+        tl.to(el, { '--draw': 1, duration: u(80), ease: 'none' }, start + u(12));
       });
 
       const photos = [...g.querySelectorAll('.photo')];
