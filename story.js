@@ -2134,7 +2134,10 @@ async function micStart() {
     micNote.textContent = 'Speak, then pause: the sphere keeps the shape of your voice and sings its melody back. Nothing is recorded or sent.';
     setDrone(0.03); // the score steps back so the room is quiet
   } catch (e) {
-    micNote.textContent = 'The microphone is not available here, but the sphere is still listening to the page.';
+    // (the sphere only hears a microphone, so say plainly why it can't, and what would let it)
+    micNote.textContent = e && e.name === 'NotAllowedError' ? 'Microphone access is off. Allow it in your browser and try again.'
+      : e && e.name === 'NotFoundError' ? 'No microphone found. The sphere will wait.'
+      : 'The microphone isn\'t available here.';
   }
 }
 function micStop() {
@@ -2521,6 +2524,10 @@ ScrollTrigger.create({
   onToggle: (self) => { if (!self.isActive) micStop(); },
 });
 
+// Someone moving through the page with the keyboard can reach every control (see .kbd in the stylesheet)
+addEventListener('keydown', (e) => { if (e.key === 'Tab') root.classList.add('kbd'); });
+addEventListener('pointerdown', () => root.classList.remove('kbd'));
+
 // "Skip to work" glides to the projects (through the story) instead of jumping
 let lenis = null;
 document.querySelectorAll('a[href="#work"]').forEach((link) => link.addEventListener('click', (e) => {
@@ -2543,6 +2550,13 @@ if (motion) {
 function buildTimelines() {
   const blurIn = (px) => (mobile ? {} : { filter: `blur(${px}px)` });
   const blurOut = mobile ? {} : { filter: 'blur(0px)' };
+
+  // Without the field there is no scene at the gate, so chapter 4's empty beat (the walk through it) closes up
+  if (root.classList.contains('no-gl')) {
+    const listen = document.querySelector('.ch-listen'), scene = listen.querySelector('.beat[aria-hidden="true"]');
+    if (scene) scene.dataset.span = '20';
+    listen.style.setProperty('--len', '420');
+  }
 
   // Opening: the line draws itself, then the first words arrive
   const intro = sections[0].querySelectorAll('.line');
