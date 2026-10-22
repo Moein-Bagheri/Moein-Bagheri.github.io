@@ -122,6 +122,10 @@ h1 em, h2 em, .big em, .lesson em { font-style: italic; color: var(--ultramarine
 
 /* Keyboard focus always shows the line it lands in, whatever the scroll timeline says */
 .line:has(:focus-visible) { opacity: 1 !important; transform: none !important; filter: none !important; }
+/* panels hidden from the pointer when faded (the two roads, the project cards) stay reachable from the keyboard,
+   and a course reached that way shows itself and its roads at once */
+.kbd .roads-scroll, .kbd .detail, .kbd .card { visibility: visible !important; }
+.roads:has(:focus-visible) { --draw: 1 !important; }
 
 /* Photographs: three frames of one life (2009, 2020, today). Each is feathered softly at its edges but bright at
    heart, and held by four thin gold corner marks, like a viewfinder, that close in as the photo comes into focus. */
@@ -330,6 +334,10 @@ html:not(.motion) .motion-only { display: none; }
   }
   .photo::after { inset: -8px; }
   .photo figcaption { top: calc(100% + 12px); }
+  /* chapter 3's words run long on a phone: its photo sits small beside the heading, not below the words */
+  .ch-turn .text, .ch-turn .p-right { grid-area: 1 / 1; }
+  .ch-turn .p-right { align-self: start; justify-self: end; height: 112px; margin-top: 0; }
+  .ch-turn .text h2 { padding-right: 124px; }
   /* projects: one row of cards to swipe through */
   .build { grid-template-columns: minmax(0, 1fr); gap: 14px; align-items: start; }
   .cards { display: flex; overflow-x: auto; scroll-snap-type: x mandatory; gap: 10px; width: 100%; justify-self: stretch; padding-bottom: 4px; }
@@ -338,8 +346,18 @@ html:not(.motion) .motion-only { display: none; }
   .roads { height: 340px; }
   .detail { min-height: 0; padding: 10px 14px; }
   .detail .skills { display: none; }
+  /* a course's projects in one line to swipe along, so the panel fits a short phone */
+  .detail ul { flex-wrap: nowrap; overflow-x: auto; list-style: none; padding: 0 0 2px; gap: 2px 18px; scrollbar-width: none; }
+  .detail li { flex: none; white-space: nowrap; }
   .vignette { background: linear-gradient(180deg, rgba(7, 10, 20, .8), rgba(7, 10, 20, .55) 62%, rgba(7, 10, 20, .15) 80%); }
   .vignette::after { display: none; }
+}
+/* short phones: a little tighter, so the longest chapter still fits on one screen */
+@media (max-width: 820px) and (max-height: 700px) {
+  body { font-size: 15px; }
+  .text p { margin-bottom: 12px; line-height: 1.55; }
+  h2 { font-size: 1.85rem; margin-bottom: 16px; }
+  .lesson { font-size: 1.3rem; margin-top: 20px !important; }
 }
 @media (max-width: 820px), (pointer: coarse) {
   .grain { display: none; }
@@ -354,4 +372,6 @@ html:not(.motion) .motion-only { display: none; }
   .stage { position: relative; height: auto; min-height: 100svh; overflow: visible; }
   .beat { grid-area: auto; }
   .roads-panel { margin-top: 40px; }
+  /* the field still glows behind the words here, so they get a soft dark ground of their own */
+  .text, .center { background: rgba(7, 10, 20, .8); box-shadow: 0 0 36px 28px rgba(7, 10, 20, .8); }
 }
