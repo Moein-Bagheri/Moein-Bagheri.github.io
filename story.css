@@ -123,7 +123,7 @@ h1 em, h2 em, .big em, .lesson em { font-style: italic; color: var(--ultramarine
 /* Keyboard focus always shows the line it lands in, whatever the scroll timeline says */
 .line:has(:focus-visible) { opacity: 1 !important; transform: none !important; filter: none !important; }
 
-/* Photographs: three frames of one life (2009, 2021, today). Each is feathered softly at its edges but bright at
+/* Photographs: three frames of one life (2009, 2020, today). Each is feathered softly at its edges but bright at
    heart, and held by four thin gold corner marks, like a viewfinder, that close in as the photo comes into focus. */
 .photo { position: absolute; margin: 0; z-index: 2; opacity: .96; --lock: 1; }
 .photo img {
@@ -155,7 +155,7 @@ h1 em, h2 em, .big em, .lesson em { font-style: italic; color: var(--ultramarine
 .photo figcaption::before { content: ""; display: inline-block; width: 18px; height: 1px; margin-right: 12px; vertical-align: middle; background: var(--gold); opacity: .75; }
 /* each sits right of the text, above the light at the bottom of its chapter */
 .p-right { right: clamp(24px, 9vw, 170px); top: 46%; height: min(40svh, 380px); aspect-ratio: 4 / 3; max-width: 36vw; transform: translateY(-50%); }
-.p-tall { aspect-ratio: .9; top: 45%; height: min(39svh, 360px); }
+.p-school { aspect-ratio: 770 / 800; top: 45%; height: min(39svh, 360px); }
 
 /* Chapter 2: no player. Lost arrives on its own when sound is on; otherwise one quiet invitation. */
 .listen { margin-top: 6px; display: flex; flex-wrap: wrap; align-items: center; gap: 10px 20px; }
