@@ -909,14 +909,21 @@ function createField() {
     if (k >= 0) pluck(k);
     else clickNote(e.clientX / innerWidth);
   });
-  // a finger on the curtain (chapter 4) brushes it like the hand; elsewhere, touch only scrolls
-  const touch = { x: 0, y: 0, on: false };
+  // a finger drawn sideways across the curtain (chapter 4) brushes it like the hand; a finger that scrolls the page
+  // passes by without a sound, and elsewhere touch only scrolls
+  const touch = { x: 0, y: 0, on: false, x0: 0, y0: 0, scroll: false };
   const onTouch = (e) => {
     const t = e.touches[0];
     if (!t) return;
+    if (e.type === 'touchstart') Object.assign(touch, { x0: t.clientX, y0: t.clientY, on: false, scroll: false });
+    // once it has moved a little, a finger is a scroll (mostly up or down) or a stroke (mostly sideways)
+    const dx = t.clientX - touch.x0, dy = t.clientY - touch.y0;
+    if (!touch.on && !touch.scroll && dx * dx + dy * dy > 100) {
+      if (Math.abs(dy) > Math.abs(dx)) touch.scroll = true;
+      else touch.on = true;
+    }
     touch.x = (t.clientX / innerWidth) * 2 - 1;
     touch.y = 1 - (t.clientY / innerHeight) * 2;
-    touch.on = true;
   };
   addEventListener('touchstart', onTouch, { passive: true });
   addEventListener('touchmove', onTouch, { passive: true });
@@ -1263,10 +1270,21 @@ function createField() {
     const H = 1 / 120;
     let acc = 0;
 
-    // a strand rings (unless it just did); a hard knock sometimes sets a neighbour going, as wind chimes do
+    // the chimes fade with the curtain: full while it stands, gone once it is out of sight
+    let bellLevel = -1;
+    function fadeBells(g) {
+      if (!audio.bellFade) return;
+      const v = Math.round(sstep(0, 0.6, g) * 50) / 50;
+      if (v === bellLevel) return;
+      bellLevel = v;
+      audio.bellFade.gain.setTargetAtTime(v, audio.ctx.currentTime, 0.12);
+    }
+
+    // a strand rings (unless it just did, or the curtain has faded); a hard knock sometimes sets a neighbour going,
+    // as wind chimes do
     function ring(i, v, cool) {
       const st = strands[i], t = uniforms.uTime.value;
-      if (t - st.hit < cool) return;
+      if (t - st.hit < cool || bellLevel === 0) return;
       st.hit = t;
       chime(i / (NS - 1), v, st.pan);
       if (v > 0.45 && Math.random() < 0.6) {
@@ -1375,6 +1393,7 @@ function createField() {
 
     function update(dt) {
       const m = state.morph, g = Math.max(0, 1 - Math.abs(m - 3)), exit = clamp(m - 3, 0, 1);
+      fadeBells(g);
       if (g <= 0.002) {
         // out of sight: the curtain hangs still again for next time
         if (glyphs.visible) strands.forEach((st) => {
@@ -1684,12 +1703,14 @@ function ensureAudio() {
   chimeBus.connect(master);
   send(chimeBus, 0.6);
 
-  // The curtain's glass chimes (chapter 4), on their own brighter bus, with a short burst of noise for each touch
+  // The curtain's glass chimes (chapter 4), on their own brighter bus, with a short burst of noise for each touch.
+  // The bus fades with the curtain, so once the viewer has passed through, nothing of it rings on.
   const bellBus = ctx.createBiquadFilter();
   bellBus.type = 'lowpass';
   bellBus.frequency.value = 7000;
-  bellBus.connect(master);
-  send(bellBus, 0.5);
+  const bellFade = ctx.createGain();
+  bellBus.connect(bellFade).connect(master);
+  send(bellFade, 0.5);
   const noise = ctx.createBuffer(1, Math.floor(ctx.sampleRate * 0.04), ctx.sampleRate);
   const nd = noise.getChannelData(0);
   for (let i = 0; i < nd.length; i++) nd[i] = (Math.random() * 2 - 1) * (1 - i / nd.length);
@@ -1719,7 +1740,7 @@ function ensureAudio() {
   mute.gain.value = 0;
   voices.connect(analyser).connect(mute).connect(ctx.destination); // keeps the analyser running everywhere
 
-  Object.assign(audio, { ctx, master, pad, padTone, padHP, banks, chimeBus, bellBus, noise, round, lostTone, lostBus, lostVerb, analyser, data: new Uint8Array(analyser.frequencyBinCount) });
+  Object.assign(audio, { ctx, master, pad, padTone, padHP, banks, chimeBus, bellBus, bellFade, noise, round, lostTone, lostBus, lostVerb, analyser, data: new Uint8Array(analyser.frequencyBinCount) });
 }
 
 function impulse(ctx, seconds) {
@@ -2588,6 +2609,23 @@ function buildTimelines() {
     listen.style.setProperty('--len', '420');
   }
 
+  // On a phone, a chapter whose words would fill the screen turns a page: from the line marked data-phone-turn on,
+  // the words become a second beat, with the photo below them
+  if (mobile) document.querySelectorAll('[data-phone-turn]').forEach((first) => {
+    const text = first.parentElement, stage = text.parentElement;
+    const page = document.createElement('div'), words = document.createElement('div');
+    page.className = 'beat beat-photo';
+    words.className = 'text';
+    for (let n = first; n;) {
+      const next = n.nextElementSibling;
+      words.appendChild(n);
+      n = next;
+    }
+    page.append(words, ...stage.querySelectorAll(':scope > .photo'));
+    text.classList.add('beat');
+    stage.appendChild(page);
+  });
+
   // Opening: the line draws itself, then the first words arrive
   const intro = sections[0].querySelectorAll('.line');
   gsap.set(intro, { opacity: 0, y: 24, ...blurIn(6) });
@@ -2679,7 +2717,7 @@ function buildTimelines() {
       photos.forEach((ph) => {
         const shown = parseFloat(getComputedStyle(ph).opacity) || 0.6;
         const img = ph.querySelector('img');
-        const at = start + u(10) + parseFloat(ph.dataset.line || 0) * stagger;
+        const at = start + u(10) + parseFloat((mobile && ph.dataset.linePhone) || ph.dataset.line || 0) * stagger; // (on a phone it may join another page)
         // the photo comes into focus as its corner marks close in
         gsap.set(ph, { opacity: 0, '--lock': 0, ...blurIn(10) });
         gsap.set(img, { scale: 1.08 });

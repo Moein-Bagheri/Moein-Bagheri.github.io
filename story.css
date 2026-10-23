@@ -334,10 +334,9 @@ html:not(.motion) .motion-only { display: none; }
   }
   .photo::after { inset: -8px; }
   .photo figcaption { top: calc(100% + 12px); }
-  /* chapter 3's words run long on a phone: its photo sits small beside the heading, not below the words */
-  .ch-turn .text, .ch-turn .p-right { grid-area: 1 / 1; }
-  .ch-turn .p-right { align-self: start; justify-self: end; height: 112px; margin-top: 0; }
-  .ch-turn .text h2 { padding-right: 124px; min-height: 96px; } /* the words below start under the photo and its year, however few lines the heading takes */
+  /* a chapter whose words would fill a phone's screen turns a page there (the script splits it); the second page
+     holds the rest of the words with the photo below them */
+  .beat-photo { display: grid; grid-template-columns: minmax(0, 1fr); align-content: start; }
   /* projects: one row of cards to swipe through */
   .build { grid-template-columns: minmax(0, 1fr); gap: 14px; align-items: start; }
   .cards { display: flex; overflow-x: auto; scroll-snap-type: x mandatory; gap: 10px; width: 100%; justify-self: stretch; padding-bottom: 4px; }
