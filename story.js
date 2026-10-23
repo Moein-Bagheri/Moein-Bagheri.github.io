@@ -24,7 +24,7 @@ let dirty = true; // reduced motion renders only when something changes
 // "Lost": streamed from its peak section to the end of the song, then round again (see the sound section)
 const lost = { el: null, active: false, fresh: true, stopTimer: 0, mix: 0 };
 // The visitor's microphone in chapter 6: analysed in the browser only, never recorded or sent
-const mic = { stream: null, src: null, analyser: null, data: null, wave: null, raw: 0, level: 0, bands: [0, 0, 0, 0] };
+const mic = { stream: null, src: null, analyser: null, own: null, data: null, wave: null, raw: 0, level: 0, bands: [0, 0, 0, 0] };
 // What chapter 6's sphere keeps of a voice: an engraving (moments round the sphere × pitch bands, fading), the sphere's
 // turn, and the melody of the last phrase. Only these numbers are kept, never the sound.
 const VW = 128, VH = 32;
@@ -2118,33 +2118,63 @@ document.addEventListener('visibilitychange', () => {
 // Chapter 6: "Say hello". The voice is analysed in the browser and shapes the sphere; nothing is recorded.
 const micBtn = document.getElementById('mic');
 const micNote = document.getElementById('micnote');
+// The microphone, as forgiving as browsers allow. On iPhones the page's audio session is set to playback (so sound
+// plays with the silent switch on), which keeps the microphone shut, so it switches to play-and-record while
+// listening. If the browser refuses the voice-processing settings, plain audio is asked for instead; and where a
+// browser can't feed a microphone into audio of another sample rate (Firefox), it is analysed in a context of its own.
 async function micStart() {
   ensureAudio();
   audio.ctx.resume();
   try {
-    const stream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true } });
-    const src = audio.ctx.createMediaStreamSource(stream), analyser = audio.ctx.createAnalyser(), mute = audio.ctx.createGain();
+    if (!window.isSecureContext) throw Object.assign(new Error('insecure'), { name: 'Insecure' });
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) throw Object.assign(new Error('unsupported'), { name: 'Unsupported' });
+    if (navigator.audioSession) navigator.audioSession.type = 'play-and-record';
+    let stream;
+    try {
+      stream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true } });
+    } catch (e) {
+      if (e.name !== 'OverconstrainedError' && e.name !== 'TypeError') throw e;
+      stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    }
+    let ctx = audio.ctx, src;
+    try {
+      src = ctx.createMediaStreamSource(stream);
+    } catch (e) {
+      const rate = stream.getAudioTracks()[0] && stream.getAudioTracks()[0].getSettings().sampleRate;
+      ctx = new (window.AudioContext || window.webkitAudioContext)(rate ? { sampleRate: rate } : undefined);
+      ctx.resume();
+      src = ctx.createMediaStreamSource(stream);
+    }
+    const analyser = ctx.createAnalyser(), mute = ctx.createGain();
     analyser.fftSize = 2048;
     analyser.smoothingTimeConstant = 0.6;
     mute.gain.value = 0;
-    src.connect(analyser).connect(mute).connect(audio.ctx.destination); // analysed, never played back
-    Object.assign(mic, { stream, src, analyser, data: new Uint8Array(analyser.frequencyBinCount), wave: new Float32Array(analyser.fftSize) });
+    src.connect(analyser).connect(mute).connect(ctx.destination); // analysed, never played back
+    Object.assign(mic, { stream, src, analyser, own: ctx === audio.ctx ? null : ctx, data: new Uint8Array(analyser.frequencyBinCount), wave: new Float32Array(analyser.fftSize) });
     micBtn.setAttribute('aria-pressed', 'true');
     micBtn.querySelector('.lbl').textContent = 'Stop listening';
     micNote.textContent = 'Speak, then pause: the sphere keeps the shape of your voice and sings its melody back. Nothing is recorded or sent.';
     setDrone(0.03); // the score steps back so the room is quiet
   } catch (e) {
+    if (navigator.audioSession) navigator.audioSession.type = 'playback';
     // (the sphere only hears a microphone, so say plainly why it can't, and what would let it)
-    micNote.textContent = e && e.name === 'NotAllowedError' ? 'Microphone access is off. Allow it in your browser and try again.'
-      : e && e.name === 'NotFoundError' ? 'No microphone found. The sphere will wait.'
-      : 'The microphone isn\'t available here.';
+    const why = {
+      Insecure: 'The microphone needs the secure (https) address of this page.',
+      Unsupported: 'This browser doesn\'t lend pages its microphone. Open the site in Chrome or Safari.',
+      NotAllowedError: 'Microphone access is off. Allow it for this site and try again.',
+      NotFoundError: 'No microphone found. The sphere will wait.',
+      NotReadableError: 'The microphone is busy in another app. Close it and try again.',
+    };
+    micNote.textContent = why[e && e.name] || `The microphone isn't available here (${(e && e.name) || 'unknown'}).`;
   }
 }
 function micStop() {
   if (!mic.stream) return;
   mic.stream.getTracks().forEach((t) => t.stop());
   mic.src.disconnect();
-  Object.assign(mic, { stream: null, src: null, analyser: null, data: null, wave: null, raw: 0 });
+  if (mic.own) mic.own.close();
+  if (navigator.audioSession) navigator.audioSession.type = 'playback';
+  Object.assign(mic, { stream: null, src: null, analyser: null, own: null, data: null, wave: null, raw: 0 });
   voice.phrase = null;
   micBtn.setAttribute('aria-pressed', 'false');
   micBtn.querySelector('.lbl').textContent = 'Say hello';
@@ -2175,7 +2205,7 @@ function readMic(dt) {
     return;
   }
   mic.analyser.getByteFrequencyData(mic.data);
-  const hz = audio.ctx.sampleRate / mic.analyser.fftSize, data = mic.data;
+  const hz = mic.analyser.context.sampleRate / mic.analyser.fftSize, data = mic.data;
   const avg = (lo, hi) => {
     let t = 0, n = 0;
     for (let i = Math.max(1, Math.floor(lo / hz)); i <= Math.min(data.length - 1, Math.ceil(hi / hz)); i++) { t += data[i]; n++; }
@@ -2400,7 +2430,7 @@ function listen(dt) {
 
   // engrave this moment's spectrum at the column facing us (and any column the turn skipped since the last)
   if (speaking) {
-    const sr = audio.ctx.sampleRate, bin = sr / mic.analyser.fftSize, d = mic.data, bands = new Float32Array(VH);
+    const sr = mic.analyser.context.sampleRate, bin = sr / mic.analyser.fftSize, d = mic.data, bands = new Float32Array(VH);
     for (let k = 0; k < VH; k++) {
       const f0 = 90 * Math.pow(7000 / 90, k / VH), f1 = 90 * Math.pow(7000 / 90, (k + 1) / VH);
       let sum = 0, n = 0;
