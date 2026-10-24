@@ -15,7 +15,7 @@ const sections = [...document.querySelectorAll('.ch')];
 const STRINGS = mobile ? 6 : 8; // piano strings in chapter 2, one per frequency band of the music
 
 // Shared state, animated by scroll and read by the renderer every frame
-const state = { morph: 0, tremble: 0, pulse: 0, look: 0, peaks: 0, walk: 0, enter: 0, focus: 0, reveal: motion ? 0 : 1, fade: motion ? 0 : 1 };
+const state = { morph: 0, tremble: 0, pulse: 0, look: 0, peaks: 0, walk: 0, enter: 0, focus: 0, reveal: motion ? 0 : 1, fade: motion ? 0 : 1, leap: false, dim: 0 };
 const bandVals = new Float32Array(16);
 const plucks = new Float32Array(16); // strings plucked by the visitor, decaying
 let level = 0;
@@ -1280,11 +1280,11 @@ function createField() {
       audio.bellFade.gain.setTargetAtTime(v, audio.ctx.currentTime, 0.12);
     }
 
-    // a strand rings (unless it just did, or the curtain has faded); a hard knock sometimes sets a neighbour going,
-    // as wind chimes do
+    // a strand rings (unless it just did, the curtain has faded or the page is leaping past); a hard knock sometimes
+    // sets a neighbour going, as wind chimes do
     function ring(i, v, cool) {
       const st = strands[i], t = uniforms.uTime.value;
-      if (t - st.hit < cool || bellLevel === 0) return;
+      if (t - st.hit < cool || bellLevel === 0 || state.leap) return;
       st.hit = t;
       chime(i / (NS - 1), v, st.pan);
       if (v > 0.45 && Math.random() < 0.6) {
@@ -1433,7 +1433,7 @@ function createField() {
       traveller.visible = show > 0.002;
       traveller.renderOrder = fig.z > zc ? 3 : 1; // in front of the curtain, then within it
       fu.uPos.value.set(fig.x, fig.y, fig.z);
-      fu.uShow.value = show;
+      fu.uShow.value = show * (1 - state.dim);
       fu.uSway.value = c.sway * Math.min(1, w * 20) * (1 - into);
       fu.uLean.value = c.lean * (1 - into);
       fu.uWalk.value = w;
@@ -1445,7 +1445,7 @@ function createField() {
 
       // each step lands with a ring of light on the step and a soft note, rising as they climb
       const landed = Math.min(6, Math.floor(w * 6 + 0.45));
-      if (landed > fig.step && landed >= 1 && g > 0.9) {
+      if (landed > fig.step && landed >= 1 && g > 0.9 && !state.leap) {
         const s = STAIR[landed], p = toWorld(landed % 2 ? 0.07 : -0.07, s[1], s[0]);
         uniforms.uStep.value.set(p[0], p[1], p[2], 0);
         stepNote(landed);
@@ -1461,7 +1461,7 @@ function createField() {
       uniforms.uSurge.value = clamp((e - 0.48) / 0.52, 0, 1);
       uniforms.uDoor.value = sstep(0.55, 1, w) * 0.7 + Math.sin(Math.PI * clamp(e / 0.7, 0, 1)) * 0.6;
       const stage = e > 0.72 ? 2 : e > 0.22 ? 1 : 0;
-      if (stage > fig.sound) enterSound(stage);
+      if (stage > fig.sound && !state.leap) enterSound(stage); // (a leap past the gate passes in silence)
       fig.sound = e < 0.15 ? 0 : Math.max(fig.sound, stage);
 
       acc = Math.min(acc + dt, H * 4);
@@ -1483,7 +1483,7 @@ function createField() {
       });
       ['position', 'aHot', 'aAng'].forEach((a) => { geo.attributes[a].needsUpdate = true; });
       gu.uReveal.value = m < 4 ? sstep(0.3, 1, g) : 1;
-      gu.uShow.value = (m < 4 ? sstep(0.2, 0.7, g) : 1) * (1 - sstep(0.1, 0.65, exit));
+      gu.uShow.value = (m < 4 ? sstep(0.2, 0.7, g) : 1) * (1 - sstep(0.1, 0.65, exit)) * (1 - state.dim);
       gu.uPass.value = exit;
     }
 
@@ -1551,7 +1551,7 @@ function createField() {
     uniforms.uMorph.value = state.morph;
     uniforms.uTremble.value = state.tremble + state.pulse;
     uniforms.uReveal.value = state.reveal;
-    uniforms.uFade.value = state.fade;
+    uniforms.uFade.value = state.fade * (1 - state.dim);
     uniforms.uLevel.value = level;
     uniforms.uMix.value = lost.mix;
     uniforms.uPeaks.value = state.peaks;
@@ -1569,7 +1569,7 @@ function createField() {
     if (!reduce) {
       // between chapters the camera swoops in with the particles; while "Lost" plays it leans in a little
       const t = uniforms.uTime.value, transit = Math.sin(Math.PI * (state.morph % 1));
-      const sway = ease(dt, 0.9), swoop = ease(dt, 0.35), loose = (1 - F * 0.6) * Math.min(1, Math.abs(state.morph - 3));
+      const sway = state.leap ? 1 : ease(dt, 0.9), swoop = state.leap ? 1 : ease(dt, 0.35), loose = (1 - F * 0.6) * Math.min(1, Math.abs(state.morph - 3));
       camera.position.x += ((pointer.x * 0.5 + Math.sin(t * 0.11) * 0.1 * lost.mix) * loose + G0[0] * F - camera.position.x) * sway;
       camera.position.y += ((-pointer.y * 0.3 + transit * 0.25) * loose + (gy - dive * 0.5 * GS) * F - camera.position.y) * sway;
       camera.position.z += (camZ * (1 - F) + (G0[2] + focusD - dive * (focusD - 1.6)) * F - lost.mix * 0.2 - transit * 1.1 * (1 - F * 0.5) - camera.position.z) * swoop;
@@ -2547,17 +2547,24 @@ function readAudio(dt) {
 
 // Chapters overlap by one viewport in motion mode, so exactly one chapter is "current" at a time
 const where = document.getElementById('where');
+function enterChapter(i) {
+  const sec = sections[i], n = sec.dataset.ch;
+  where.textContent = n ? `${n.padStart(2, '0')} · ${sec.dataset.name}` : sec.dataset.name;
+  setDrone(DRONE[i] ?? 0.09);
+}
 sections.forEach((sec, i) => {
   ScrollTrigger.create({
     trigger: sec, start: motion ? 'top top' : 'top 55%', end: motion ? 'bottom bottom' : 'bottom 55%',
-    onToggle: (self) => {
-      if (!self.isActive) return;
-      const n = sec.dataset.ch;
-      where.textContent = n ? `${n.padStart(2, '0')} · ${sec.dataset.name}` : sec.dataset.name;
-      setDrone(DRONE[i] ?? 0.09);
-    },
+    onToggle: (self) => { if (self.isActive) enterChapter(i); },
   });
 });
+// A leap skips the chapters on its way and may land where none reports in (the very end, say), so once it lands,
+// the chapter is the one the page has reached
+function settleChapter() {
+  let i = 0;
+  sections.forEach((sec, k) => { if (sec.getBoundingClientRect().top <= 1) i = k; });
+  enterChapter(i);
+}
 
 // Chapter 2 is where Lost lives: it plays for as long as the visitor stays, and hands back when they move on
 ScrollTrigger.create({
@@ -2565,7 +2572,9 @@ ScrollTrigger.create({
   onToggle: (self) => {
     inNote = self.isActive;
     if (!audio.on) return;
-    if (inNote) enterNote();
+    // it begins a moment after the visitor arrives, so a leap only passing through never starts it (if a leap lands
+    // here, the leap's end does)
+    if (inNote) setTimeout(() => { if (inNote && !state.leap) enterNote(); }, 200);
     else lostOut();
   },
 });
@@ -2660,18 +2669,51 @@ function buildTimelines() {
   // The particles follow the scroll with weight: whatever the wheel does, they glide toward where the story
   // is (time-based, so the feel is the same at any frame rate)
   const glide = (dt, seconds) => 1 - Math.exp(-dt / seconds);
+  // A leap (the Home or End key, the scrollbar dragged fast, a find in the page) doesn't replay every scene on the
+  // way: while the page leaps, the words and the field dip out and everything follows the scroll at once, the
+  // scrubbed words included; then they come back where it landed. Smooth scrolling (the wheel, "Skip to work", a
+  // finger) never counts as a leap.
+  const trail = []; // where the page has been over the last tenth of a second
+  let leapFor = 0, touchedAt = -1e9, lastY = scrollY, lastT = performance.now();
+  ['touchstart', 'touchmove', 'touchend'].forEach((n) => addEventListener(n, () => { touchedAt = performance.now(); }, { passive: true }));
+  const leapCheck = (dt) => {
+    // speed in screens a second, over the last frame and over the last tenth of a second
+    const now = performance.now(), screens = (dy, ms) => (ms > 0 ? (Math.abs(dy) / ms) * 1000 / innerHeight : 0);
+    const step = screens(scrollY - lastY, now - lastT);
+    trail.push([now, scrollY]);
+    while (trail.length > 2 && now - trail[0][0] > 120) trail.shift();
+    const speed = screens(scrollY - trail[0][1], now - trail[0][0]);
+    lastY = scrollY;
+    lastT = now;
+    // a key or the scrollbar leaps at once, over 25 screens a second; a finger's fling (it runs on for a few seconds,
+    // in uneven frames) counts only when it races past 60 over the tenth of a second
+    const fast = now - touchedAt < 3000 ? speed > 60 : Math.max(step, speed) > 25;
+    leapFor = fast && !(lenis && lenis.isScrolling === 'smooth') ? 0.25 : Math.max(0, leapFor - dt);
+    if (state.leap !== leapFor > 0) {
+      state.leap = leapFor > 0;
+      root.classList.toggle('leap', state.leap);
+      if (!state.leap) {
+        settleChapter();
+        if (inNote && audio.on) enterNote(); // landed in chapter 2: Lost begins now
+      }
+    }
+    if (state.leap) ScrollTrigger.getAll().forEach((t) => { const tw = t.getTween(); if (tw) tw.progress(1); });
+    state.dim += ((state.leap ? 1 : 0) - state.dim) * glide(dt, state.leap ? 0.04 : 0.3);
+  };
   const follow = (dt) => {
+    leapCheck(dt);
+    const k = (seconds) => (state.leap ? 1 : glide(dt, seconds));
     const p = turns.map((t) => ease(t.progress)), pEnd = p[5];
     const tremble = ease(t1.progress) * (1 - p[0]);
     const morph = p.reduce((sum, x) => sum + x, 0);
-    state.tremble += (tremble - state.tremble) * glide(dt, 0.35);
-    state.morph += (morph - state.morph) * glide(dt, 0.65);
-    state.walk += (tWalk.progress - state.walk) * glide(dt, 0.65);
-    state.enter += (tEnter.progress - state.enter) * glide(dt, 0.65);
-    state.focus += (ease(tFocus.progress) * (1 - ease(tUnfocus.progress)) - state.focus) * glide(dt, 0.8);
-    state.peaks += (ease(tPeaks.progress) * (1 - p[4]) - state.peaks) * glide(dt, 0.6);
+    state.tremble += (tremble - state.tremble) * k(0.35);
+    state.morph += (morph - state.morph) * k(0.65);
+    state.walk += (tWalk.progress - state.walk) * k(0.65);
+    state.enter += (tEnter.progress - state.enter) * k(0.65);
+    state.focus += (ease(tFocus.progress) * (1 - ease(tUnfocus.progress)) - state.focus) * k(0.8);
+    state.peaks += (ease(tPeaks.progress) * (1 - p[4]) - state.peaks) * k(0.6);
     // centred at the opening and the end; in between, the camera turns left so the shapes clear the text column
-    state.look += (-0.5 * ease(t1.progress) * (1 - pEnd) - state.look) * glide(dt, 0.7);
+    state.look += (-0.5 * ease(t1.progress) * (1 - pEnd) - state.look) * k(0.7);
     root.style.setProperty('--side', ((-state.look / 0.5) * (1 - state.focus)).toFixed(3));
     root.style.setProperty('--focus', state.focus.toFixed(3));
   };

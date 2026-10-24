@@ -89,7 +89,10 @@ a { color: inherit; }
   position: sticky; top: 0; height: 100svh; overflow: hidden;
   display: grid; grid-template-columns: minmax(0, 1fr); align-items: center;
   padding: 96px clamp(16px, 6vw, 96px) 64px;
+  transition: opacity .45s ease;
 }
+/* a leap through the page (the Home key, the scrollbar dragged fast) dips the words out until it lands */
+.leap .stage { opacity: 0; transition-duration: .1s; }
 /* overlapping chapters must not swallow clicks meant for the one underneath */
 .motion .ch { pointer-events: none; }
 .motion .ch a, .motion .ch button { pointer-events: auto; }
