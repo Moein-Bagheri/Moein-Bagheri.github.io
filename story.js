@@ -1342,14 +1342,18 @@ function createField() {
           // and at the end the curtain parts down the middle
           if (exit > 0) {
             const W = Math.min(1, exit * 1.6) * AR.a * GS * 0.95, dx = px[n] - G0[0];
-            if (Math.abs(dx) < W) {
-              const push = (G0[0] + (dx < 0 ? -W : W) - px[n]) * 0.035;
-              px[n] += push;
-              moved = Math.max(moved, Math.abs(push));
-            }
+            if (Math.abs(dx) < W) px[n] += (G0[0] + (dx < 0 ? -W : W) - px[n]) * 0.035;
           }
         }
         if (moved > 0.004) ring(i, 0.25, 0.6);
+        // as the parting reaches a strand it rings once; held aside (the middle ones strain against their pins, so
+        // the parting keeps pushing them) it stays quiet, until the curtain has closed back past it
+        const reach = Math.min(1, exit * 1.6) * AR.a * GS * 0.95, off = Math.abs(st.ax - G0[0]);
+        if (exit < 0.01 || reach < off - 0.02) st.parted = false;
+        else if (!st.parted && reach > off) {
+          st.parted = true;
+          ring(i, 0.25, 0.6);
+        }
       }
       // links keep their length: a few passes from the top down (the top point is pinned)
       for (let it = 0; it < 3; it++) {
