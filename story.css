@@ -278,6 +278,10 @@ h1 em, h2 em, .big em, .lesson em { font-style: italic; color: var(--ultramarine
 .flow li.end::after { content: none; }
 .card .fig { font-family: var(--mono); font-size: .7rem; color: var(--gold); margin-top: auto; padding-top: 8px; border-top: 1px solid var(--rule); }
 .more-link { color: var(--muted); text-underline-offset: 4px; font-size: .92rem; }
+/* the GitHub mark beside links that open a repository */
+.gh { width: .8em; height: .8em; margin-left: .4em; vertical-align: -.06em; fill: currentColor; opacity: .55; transition: opacity .2s; }
+a:hover .gh, a:focus-visible .gh { opacity: 1; }
+.more-link .gh { margin: 0 .45em 0 0; }
 .more-link:hover { color: var(--fg); }
 
 /* Chapter 6: the microphone */
