@@ -73,7 +73,7 @@
   });
   const dest = document.createElement('div');
   dest.className = 'dest';
-  dest.innerHTML = 'AI product designer<small>where the roads meet</small>';
+  dest.innerHTML = 'AI product builder<small>where the roads meet</small>';
   map.appendChild(dest);
 
   const buttons = new Map();
@@ -172,6 +172,7 @@
         a.target = '_blank';
         a.rel = 'noopener';
         a.textContent = label;
+        a.insertAdjacentHTML('beforeend', '<svg class="gh" aria-hidden="true"><use href="#gh"/></svg>'); // (the mark is defined once in the page)
         li.appendChild(a);
         ul.appendChild(li);
       });
