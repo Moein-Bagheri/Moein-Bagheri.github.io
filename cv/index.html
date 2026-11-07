@@ -28,7 +28,7 @@
   }
   a { color: inherit; text-decoration: none; border-bottom: 0.5pt solid var(--rule); }
 
-  header { margin-bottom: 9pt; }
+  header { margin-bottom: 9pt; overflow: hidden; }
   h1 {
     font-family: "Source Serif 4", Georgia, serif;
     font-weight: 600;
@@ -38,8 +38,9 @@
     line-height: 1.1;
   }
   .tagline { color: var(--accent); font-weight: 600; font-size: 11pt; margin-top: 2pt; }
-  .contact { color: var(--muted); margin-top: 4pt; font-size: 9.5pt; }
-  .contact span + span::before { content: "·"; margin: 0 6pt; color: var(--rule); }
+  /* every contact item opens with a dot; the header's overflow clips the dot that starts a line */
+  .contact { display: flex; flex-wrap: wrap; margin: 4pt 0 0 -14pt; color: var(--muted); font-size: 9pt; }
+  .contact span::before { content: "·"; display: inline-block; width: 14pt; text-align: center; color: var(--rule); }
 
   section { margin-top: 8.5pt; }
   h2 {
@@ -95,6 +96,7 @@
     <span><a href="mailto:moeinbagheri.ai@gmail.com">moeinbagheri.ai@gmail.com</a></span>
     <span><a href="https://moeinbagheri.com">moeinbagheri.com</a></span>
     <span><a href="https://github.com/Moein-Bagheri">github.com/Moein-Bagheri</a></span>
+    <span><a href="https://www.linkedin.com/in/moeinbagheri">linkedin.com/in/moeinbagheri</a></span>
     <span>Isfahan, Iran</span>
   </div>
 </header>
