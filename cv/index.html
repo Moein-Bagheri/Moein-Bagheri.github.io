@@ -80,6 +80,8 @@
   }
   @media screen and (max-width: 640px) {
     body { padding: 20px 16px; margin: 0; box-shadow: none; }
+    /* the bar sits above the name, not into it (the -8px above is for the desktop sheet) */
+    .toolbar { margin: 0 0 16px; }
     .row { flex-direction: column; gap: 0; }
     .meta { white-space: normal; }
     .skills { grid-template-columns: 1fr; }
@@ -173,7 +175,7 @@
     </ul>
   </div>
 
-  <p class="sub">More on GitHub: n-gram melody completion · neural style transfer · YOLOv8 gesture detection · DiaTech product discovery</p>
+  <p class="sub">More on GitHub: <a href="https://github.com/Moein-Bagheri/ngram-music-completion">n-gram melody completion</a> · <a href="https://github.com/Moein-Bagheri/neural-style-transfer">neural style transfer</a> · <a href="https://github.com/Moein-Bagheri/hand-gesture-recognition">YOLOv8 gesture detection</a> · <a href="https://github.com/Moein-Bagheri/diatech-product-case">DiaTech product discovery</a></p>
 </section>
 
 <section class="keep">
@@ -210,10 +212,10 @@
 <section>
   <h2>Skills</h2>
   <dl class="skills">
-    <dt>AI-native dev</dt><dd>Claude Code, Codex, agentic coding workflows</dd>
-    <dt>Programming</dt><dd>Python, Java, C/C++, SQL, JavaScript, Git</dd>
     <dt>Speech &amp; ML</dt><dd>PyTorch, TensorFlow/Keras, scikit-learn, librosa, OpenCV, Ultralytics YOLO</dd>
-    <dt>NLP &amp; retrieval</dt><dd>Hazm, NLTK, FAISS, Ollama, retrieval-augmented generation, Streamlit</dd>
+    <dt>NLP &amp; retrieval</dt><dd>Hazm, NLTK, FAISS, Ollama, retrieval-augmented generation</dd>
+    <dt>Code &amp; tools</dt><dd>Python, Java, C/C++, SQL, JavaScript, Git, Streamlit</dd>
+    <dt>AI-native dev</dt><dd>Claude Code, Codex, agentic coding workflows</dd>
     <dt>Languages</dt><dd>Persian (native), English (fluent)</dd>
   </dl>
 </section>

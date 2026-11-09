@@ -2607,6 +2607,20 @@ if (motion) {
   gsap.ticker.add((t) => lenis.raf(t * 1000));
   gsap.ticker.lagSmoothing(0);
   buildTimelines();
+  // A link straight to #work opens where the shortcut glides to, with the projects in view, not at the top
+  // of the chapter where they haven't appeared yet: right away, and again after the load-time refresh
+  // (the browser keeps the anchor in view until then), unless the visitor has started moving
+  if (location.hash === '#work') {
+    let moved = false;
+    ['wheel', 'touchstart', 'keydown', 'pointerdown'].forEach((n) => addEventListener(n, () => { moved = true; }, { once: true, passive: true }));
+    const land = () => {
+      if (moved) return;
+      const w = document.getElementById('work');
+      lenis.scrollTo(w.offsetTop + (w.offsetHeight - innerHeight) * 0.5, { immediate: true, force: true });
+    };
+    requestAnimationFrame(land);
+    if (document.readyState === 'complete') land(); else addEventListener('load', () => requestAnimationFrame(land));
+  }
 } else {
   root.classList.add('story-ready');
 }
