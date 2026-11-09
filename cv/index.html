@@ -83,6 +83,9 @@
     .row { flex-direction: column; gap: 0; }
     .meta { white-space: normal; }
     .skills { grid-template-columns: 1fr; }
+    /* phones: the tagline on two lines, without the dot */
+    .tagline .sep { display: none; }
+    .tagline .field { display: block; }
   }
 </style>
 </head>
@@ -91,7 +94,7 @@
 
 <header>
   <h1>Moein Bagheri</h1>
-  <div class="tagline">Building AI that listens · Speech &amp; Audio AI</div>
+  <div class="tagline">AI product builder with an ear for detail<span class="sep"> · </span><span class="field">Speech &amp; Audio AI</span></div>
   <div class="contact">
     <span><a href="mailto:moeinbagheri.ai@gmail.com">moeinbagheri.ai@gmail.com</a></span>
     <span><a href="https://moeinbagheri.com">moeinbagheri.com</a></span>
