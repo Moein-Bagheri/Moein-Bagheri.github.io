@@ -445,7 +445,7 @@ function createField() {
   voiceTex.needsUpdate = true;
 
   const uniforms = {
-    uTime: { value: 0 }, uMorph: { value: 0 }, uTremble: { value: 0 }, uReveal: { value: 0 }, uFade: { value: 0 },
+    uTime: { value: 0 }, uMorph: { value: 0 }, uEndDY: { value: 0 }, uTremble: { value: 0 }, uReveal: { value: 0 }, uFade: { value: 0 },
     uB: { value: bandVals }, uLevel: { value: 0 }, uMix: { value: 0 }, uStrings: { value: STRINGS },
     uStrN: { value: normal }, uP: { value: plucks },
     uField: { value: null }, uRipple: { value: new THREE.Vector3(9, 9, 99) },
@@ -467,7 +467,7 @@ function createField() {
     vertexShader: /* glsl */ `
       attribute vec3 aP2; attribute float aRand; attribute float aStr; attribute float aU;
       attribute vec4 aP3; attribute float aG; attribute float aQ;
-      uniform float uTime, uMorph, uTremble, uReveal, uFade, uLevel, uMix, uStrings, uSize, uPixel, uSpan;
+      uniform float uTime, uMorph, uEndDY, uTremble, uReveal, uFade, uLevel, uMix, uStrings, uSize, uPixel, uSpan;
       uniform float uB[16], uP[16];
       uniform vec3 uStrN, uRipple, uPathA, uPathB, uTerrA, uTerrB, uOrb, uFig;
       uniform sampler2D uField, uVoice;
@@ -629,6 +629,7 @@ function createField() {
         float m = uMorph;
         int seg = int(min(floor(m), 5.0));
         vec3 p = travel(shape(seg), shape(seg + 1), m - float(seg));
+        p.y += uEndDY * clamp(m - 5.0, 0.0, 1.0); // the closing line, set lower on phones (see placeEndLine)
         float onLine = max(1.0 - clamp(m, 0.0, 1.0), clamp(m - 5.0, 0.0, 1.0));
         float onStrings = max(0.0, 1.0 - abs(m - 1.0));
         float onPath = max(0.0, 1.0 - abs(m - 2.0));
@@ -1513,6 +1514,19 @@ function createField() {
     return { update, click };
   }
 
+  // On a phone the last chapter's photo stands low in the column, just where the closing line of light rests, so
+  // there the line settles under the photo's caption instead, as far down as the screen allows
+  const endCap = document.querySelector('.ch-next .photo figcaption');
+  function placeEndLine() {
+    const stage = endCap && endCap.closest('.stage');
+    if (!mobile || !stage) return;
+    const h = innerHeight, half = camZ * uniforms.uTanHalf.value; // half the screen's height, in world units at the line
+    const rest = (h * (1 - LY / half)) / 2; // where the line rests, in pixels from the top
+    const under = endCap.getBoundingClientRect().bottom - stage.getBoundingClientRect().top + 30; // the stage pins at the top
+    const y = Math.min(Math.max(rest, under), h - 20);
+    uniforms.uEndDY.value = half * (1 - (2 * y) / h) - LY;
+  }
+
   let focusD = 7;
   function resize() {
     const w = innerWidth, h = innerHeight, dpr = Math.min(2, devicePixelRatio || 1);
@@ -1532,6 +1546,11 @@ function createField() {
   }
   resize();
   addEventListener('resize', resize);
+  // (and the closing line's place on phones, again once the words have their final size)
+  placeEndLine();
+  addEventListener('resize', placeEndLine);
+  document.fonts?.ready.then(placeEndLine);
+  addEventListener('load', placeEndLine);
 
   const pointer = { x: 0, y: 0 };
   addEventListener('pointermove', (e) => {

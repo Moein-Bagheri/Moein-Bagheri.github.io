@@ -346,6 +346,8 @@ html:not(.motion) .motion-only { display: none; }
   }
   .photo::after { inset: -8px; }
   .photo figcaption { top: calc(100% + 12px); }
+  /* the last photo follows its words, leaving the room below for the closing line of light */
+  .ch-next .stage { align-content: start; }
   /* a chapter whose words would fill a phone's screen turns a page there (the script splits it); the second page
      holds the rest of the words with the photo below them */
   .beat-photo { display: grid; grid-template-columns: minmax(0, 1fr); align-content: start; }
