@@ -73,7 +73,7 @@
   });
   const dest = document.createElement('div');
   dest.className = 'dest';
-  dest.innerHTML = 'AI product builder<small>where the roads meet</small>';
+  dest.innerHTML = 'AI product engineer<small>where the roads meet</small>';
   map.appendChild(dest);
 
   const buttons = new Map();
