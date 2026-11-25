@@ -2788,10 +2788,13 @@ function buildTimelines() {
     .to(state, { reveal: 1, duration: 2.6, ease: 'power3.inOut' }, 0)
     .to(intro, { opacity: 1, y: 0, ...blurOut, duration: 1.2, stagger: 0.25, ease: 'power3.out' }, 1.1);
 
-  // The opening words drift away together (their container moves, so the intro keeps ownership of the lines)
+  // The opening words drift away together (their container moves, so the intro keeps ownership of the lines). On a
+  // phone they leave with the same weight as every chapter's words (scrub 1.2), and the opening is shorter there
+  // (data-len-phone), so chapter 1 arrives as they go. Before, a swipe cleared the screen for a third of a second
+  // before chapter 1's words came, and that empty moment read as a stall.
   gsap.to(sections[0].querySelector('.center'), {
     opacity: 0, y: -40, ...blurIn(6), ease: 'none',
-    scrollTrigger: { trigger: sections[0], start: 'top top', end: '+=55%', scrub: true },
+    scrollTrigger: { trigger: sections[0], start: 'top top', end: '+=55%', scrub: mobile ? 1.2 : true },
   });
 
   // Particle shapes: each handover reports its own progress; the blend is computed every frame.
