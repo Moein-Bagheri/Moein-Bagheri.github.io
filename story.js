@@ -12,6 +12,8 @@ const mobile = matchMedia('(max-width: 820px)').matches;
 const motion = !reduce && !short; // scroll choreography; otherwise the page is plain, readable text
 if (motion) root.classList.add('motion');
 const sections = [...document.querySelectorAll('.ch')];
+// on a phone a chapter may run longer (data-len-phone), as one whose words turn a page there does
+if (mobile && motion) sections.forEach((s) => { if (s.dataset.lenPhone) s.style.setProperty('--len', s.dataset.lenPhone); });
 const STRINGS = mobile ? 6 : 8; // piano strings in chapter 2, one per frequency band of the music
 
 // Shared state, animated by scroll and read by the renderer every frame
@@ -1712,6 +1714,9 @@ const nowTxt = document.getElementById('nowtxt');
 const noteSec = document.querySelector('.ch-note');
 const audio = { ctx: null, on: false, padTarget: 0.06 };
 let inNote = false;
+// when the page last moved (a scroll, or a finger on the screen), so one-off heavy work can wait for a still moment
+let movedAt = 0;
+['scroll', 'touchstart', 'touchmove'].forEach((n) => addEventListener(n, () => { movedAt = performance.now(); }, { passive: true, capture: true }));
 
 function ensureAudio() {
   if (audio.ctx) return;
@@ -1727,10 +1732,14 @@ function ensureAudio() {
   limiter.release.value = 0.25;
   master.connect(limiter).connect(ctx.destination);
 
-  // A shared room: a soft, darkening reverb tail. Building it is the heaviest part of starting the sound, so it waits
-  // until the page has drawn the frame after the first touch; the sound fades in slower than that.
+  // A shared room: a soft, darkening reverb tail. Building it is the heaviest part of starting the sound, so it is
+  // built a slice a frame (see buildImpulse); handing it to the reverb is a moment's work too, so that waits for a
+  // still page (no scroll for a third of a second), where a moment's pause can't show.
   const verb = ctx.createConvolver();
-  requestAnimationFrame(() => setTimeout(() => { verb.buffer = impulse(ctx, 3.4); }, 0));
+  buildImpulse(ctx, 3.4, (ir) => {
+    const settle = () => { if (performance.now() - movedAt > 300) verb.buffer = ir; else setTimeout(settle, 150); };
+    settle();
+  });
   const verbOut = ctx.createGain();
   verbOut.gain.value = 0.55;
   verb.connect(verbOut).connect(master);
@@ -1839,19 +1848,29 @@ function ensureAudio() {
   Object.assign(audio, { ctx, master, pad, padTone, padHP, banks, chimeBus, reply, bellBus, bellFade, noise, round, lostTone, lostBus, lostVerb, analyser, data: new Uint8Array(analyser.frequencyBinCount) });
 }
 
-function impulse(ctx, seconds) {
+// The room's impulse: noise through a low-pass that darkens along it, under a fading envelope. Made in one go it
+// held the page up for a moment (the first swipe of a visit stalled on it), so it is made a slice a frame instead,
+// about a third of a second in all, and handed over when whole.
+function buildImpulse(ctx, seconds, done) {
   const len = Math.floor(ctx.sampleRate * seconds), ir = ctx.createBuffer(2, len, ctx.sampleRate);
-  const attack = ctx.sampleRate * 0.012;
-  for (let c = 0; c < 2; c++) {
-    const d = ir.getChannelData(c);
-    let lp = 0;
-    for (let i = 0; i < len; i++) {
-      const t = i / len;
-      lp += (Math.random() * 2 - 1 - lp) * (0.92 - 0.85 * t); // brighter at first, darker as it fades
-      d[i] = lp * Math.pow(1 - t, 3.2) * Math.min(1, i / attack);
-    }
-  }
-  return ir;
+  const attack = ctx.sampleRate * 0.012, SLICE = 8192, chans = [ir.getChannelData(0), ir.getChannelData(1)], lp = [0, 0];
+  let at = 0;
+  const slice = () => {
+    const end = Math.min(len, at + SLICE);
+    chans.forEach((d, c) => {
+      let l = lp[c];
+      for (let i = at; i < end; i++) {
+        const t = i / len;
+        l += (Math.random() * 2 - 1 - l) * (0.92 - 0.85 * t); // brighter at first, darker as it fades
+        d[i] = l * Math.pow(1 - t, 3.2) * Math.min(1, i / attack);
+      }
+      lp[c] = l;
+    });
+    at = end;
+    if (at < len) requestAnimationFrame(slice);
+    else done(ir);
+  };
+  requestAnimationFrame(slice);
 }
 
 // Holds a parameter where it is right now, so a new move starts from there (mid-fade included)
@@ -2218,12 +2237,25 @@ soundBtn.addEventListener('click', () => setSound(!soundPref));
 document.getElementById('begin').addEventListener('click', () => setSound(true));
 document.getElementById('quiet').addEventListener('click', () => setSound(false));
 // the first click, tap or key anywhere starts the sound, if it is on (the sound button and the opening's choices
-// handle themselves)
+// handle themselves). A finger that scrolls isn't a tap: setting the sound up is a moment's work, and on the first
+// swipe of a visit (the opening into chapter 1) that moment showed as a stall in the scroll; nor would a phone let a
+// swipe start the sound.
+let tapFrom = null;
+const touchFrom = (e) => {
+  const t = e.touches[0];
+  tapFrom = e.touches.length === 1 && t ? [t.clientX, t.clientY, performance.now()] : null;
+};
 const firstTouch = (e) => {
-  ['pointerdown', 'keydown', 'touchend'].forEach((n) => removeEventListener(n, firstTouch, true));
+  if (e.type === 'touchend') {
+    const t = e.changedTouches[0];
+    if (!tapFrom || !t || Math.hypot(t.clientX - tapFrom[0], t.clientY - tapFrom[1]) > 12 || performance.now() - tapFrom[2] > 700) return;
+  }
+  removeEventListener('touchstart', touchFrom, true);
+  ['click', 'keydown', 'touchend'].forEach((n) => removeEventListener(n, firstTouch, true));
   if (soundPref && !audio.on && !(e.target.closest && e.target.closest('#sound, #begin, #quiet'))) setSound(true);
 };
-['pointerdown', 'keydown', 'touchend'].forEach((n) => addEventListener(n, firstTouch, true));
+addEventListener('touchstart', touchFrom, { capture: true, passive: true });
+['click', 'keydown', 'touchend'].forEach((n) => addEventListener(n, firstTouch, true));
 hearBtn.addEventListener('click', () => setSound(true));
 document.querySelectorAll('[data-sound-on]').forEach((b) => b.addEventListener('click', () => setSound(true)));
 document.addEventListener('visibilitychange', () => {
