@@ -15,7 +15,8 @@
 }
 
 * { box-sizing: border-box; }
-html { background: var(--bg); -webkit-text-size-adjust: 100%; }
+/* (taps answer at once: no wait to see whether a second tap follows for a zoom; pinch zoom still works) */
+html { background: var(--bg); -webkit-text-size-adjust: 100%; touch-action: manipulation; }
 html.lenis, html.lenis body { height: auto; }
 .lenis.lenis-smooth { scroll-behavior: auto !important; }
 body {
@@ -31,7 +32,8 @@ a { color: inherit; }
 :focus-visible { outline: 2px solid var(--gold); outline-offset: 3px; border-radius: 2px; }
 
 /* Layers behind the story */
-#gl { position: fixed; inset: 0; width: 100%; height: 100%; display: block; z-index: 0; }
+/* as tall as the screen gets, so it keeps its size when a phone's toolbar slides away (the script frames the scene) */
+#gl { position: fixed; top: 0; left: 0; width: 100%; height: 100vh; height: 100lvh; display: block; z-index: 0; }
 .vignette {
   position: fixed; inset: 0; z-index: 1; pointer-events: none; opacity: calc(1 - var(--focus, 0) * .65);
   background: radial-gradient(120% 90% at 50% 50%, transparent 40%, rgba(7, 10, 20, .75) 100%);
@@ -71,14 +73,15 @@ a { color: inherit; }
 }
 .sound:hover { border-color: rgba(233, 235, 242, .3); }
 .bars { display: inline-flex; align-items: flex-end; gap: 2px; height: 12px; }
-.bars i { width: 2px; height: 3px; background: var(--muted); border-radius: 1px; }
+/* the bars move by scaling (drawn by the GPU), not by height, which would lay the page out again every frame */
+.bars i { width: 2px; height: 12px; background: var(--muted); border-radius: 1px; transform: scaleY(.25); transform-origin: 50% 100%; }
 .sound[aria-pressed="true"] .bars i { background: var(--gold); animation: eq 1s ease-in-out infinite; }
 /* sound is on but waiting for the visitor's first click or tap: gold, but still */
 .sound.pending .bars i { animation: none !important; opacity: .55; }
 .sound[aria-pressed="true"] .bars i:nth-child(2) { animation-delay: -.3s; }
 .sound[aria-pressed="true"] .bars i:nth-child(3) { animation-delay: -.6s; }
 .sound[aria-pressed="true"] .bars i:nth-child(4) { animation-delay: -.15s; }
-@keyframes eq { 0%, 100% { height: 3px; } 50% { height: 12px; } }
+@keyframes eq { 0%, 100% { transform: scaleY(.25); } 50% { transform: scaleY(1); } }
 
 /* Chapters: each is a tall track with a pinned stage. In motion mode they overlap by one viewport,
    so the next stage is already pinned when the previous one lets go. */
@@ -177,8 +180,8 @@ h1 em, h2 em, .big em, .lesson em { font-style: italic; color: var(--ultramarine
   font: 500 .92rem var(--body); color: var(--bg); background: var(--gold); border: 0; border-radius: 999px; padding: 12px 20px 12px 16px;
 }
 .hear:hover { filter: brightness(1.08); }
-.hear .bars i { background: currentColor; height: 6px; }
-.hear .bars i:nth-child(2) { height: 10px; } .hear .bars i:nth-child(3) { height: 4px; } .hear .bars i:nth-child(4) { height: 8px; }
+.hear .bars i { background: currentColor; transform: scaleY(.5); }
+.hear .bars i:nth-child(2) { transform: scaleY(.833); } .hear .bars i:nth-child(3) { transform: scaleY(.333); } .hear .bars i:nth-child(4) { transform: scaleY(.667); }
 /* only the invitations to turn sound on step aside once it is on (not the other buttons in this style) */
 .sound-on .turn-on { display: none; }
 .text .now, .text .hint { display: none; margin: 0; }
@@ -378,12 +381,17 @@ html:not(.motion) .motion-only { display: none; }
 }
 @media (max-width: 820px), (pointer: coarse) {
   .grain { display: none; }
+  /* no frosted glass on phones: under panels this dark the blur hardly shows, and blurring the moving field behind
+     them again every frame is heavy work for a phone. A touch more opacity keeps the same depth. */
+  .roads-scroll, .detail, .card { -webkit-backdrop-filter: none; backdrop-filter: none; }
+  .roads-scroll, .detail { background: rgba(10, 14, 26, .88); }
+  .card { background: rgba(10, 14, 26, .85); }
 }
 
 /* Static, readable version: reduced motion, or a viewport too short for pinned stages */
 @media (prefers-reduced-motion: reduce), (max-height: 560px) {
   .grain { animation: none; }
-  .sound[aria-pressed="true"] .bars i { animation: none; height: 8px; }
+  .sound[aria-pressed="true"] .bars i { animation: none; transform: scaleY(.667); }
   .now .bars i { animation: none !important; }
   .ch { height: auto; }
   .stage { position: relative; height: auto; min-height: 100svh; overflow: visible; }

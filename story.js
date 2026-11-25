@@ -49,6 +49,10 @@ function createField() {
   const camera = new THREE.PerspectiveCamera(35, 1, 0.1, 100);
   let camZ = 9;
   camera.position.set(0, 0, camZ);
+  // The canvas on screen, in CSS pixels, and the height the scene is framed for (see resize). Taps and the hand are
+  // read against the canvas, so they land where the points are drawn.
+  const view = { w: innerWidth, h: innerHeight, frame: innerHeight };
+  const screenAspect = () => view.w / view.h;
 
   const N = mobile ? 18000 : 60000;
   const SPAN = 4.2;
@@ -817,7 +821,7 @@ function createField() {
     strEnds.forEach(([n, f], k) => {
       pa.copy(n).project(camera);
       pb.copy(f).project(camera);
-      const ax = (pb.x - pa.x) * camera.aspect, ay = pb.y - pa.y, px = (pt.x - pa.x) * camera.aspect, py = pt.y - pa.y;
+      const asp = screenAspect(), ax = (pb.x - pa.x) * asp, ay = pb.y - pa.y, px = (pt.x - pa.x) * asp, py = pt.y - pa.y;
       const t = Math.max(0, Math.min(1, (px * ax + py * ay) / (ax * ax + ay * ay)));
       const dd = Math.hypot(px - ax * t, py - ay * t);
       if (dd < bestD) { bestD = dd; best = k; }
@@ -833,7 +837,7 @@ function createField() {
   const ease = (dt, seconds) => 1 - Math.exp(-dt / seconds);
   const field = { w: 0, h: 0, d: null, v: null, tex: null, ripples: [], idle: false };
   function makeField() {
-    const h = mobile ? 40 : 32, w = Math.max(8, Math.round(h * camera.aspect));
+    const h = mobile ? 40 : 32, w = Math.max(8, Math.round(h * screenAspect()));
     const data = new Uint8Array(w * h * 4);
     for (let i = 0; i < w * h; i++) data.set([128, 128, 0, 255], i * 4);
     if (field.tex) field.tex.dispose();
@@ -848,7 +852,7 @@ function createField() {
   function stepField(dt) {
     field.ripples = field.ripples.filter((r) => (r.age += dt) < 3);
     if (field.idle && !hand.on && !field.ripples.length) return;
-    const { w, h, d, v } = field, asp = camera.aspect, data = field.tex.image.data;
+    const { w, h, d, v } = field, asp = screenAspect(), data = field.tex.image.data;
     const speed = Math.hypot(hand.vx, hand.vy), push = 0.2 + 0.9 * Math.min(1, speed / 1.2), R2 = 0.16 * 0.16;
     let busy = false;
     for (let j = 0; j < h; j++) {
@@ -887,8 +891,8 @@ function createField() {
 
   addEventListener('pointermove', (e) => {
     if (e.pointerType !== 'mouse') return;
-    ptr.x = (e.clientX / innerWidth) * 2 - 1;
-    ptr.y = 1 - (e.clientY / innerHeight) * 2;
+    ptr.x = (e.clientX / view.w) * 2 - 1;
+    ptr.y = 1 - (e.clientY / view.h) * 2;
     ptr.seen = true;
   });
   root.addEventListener('mouseleave', () => { ptr.seen = false; });
@@ -896,7 +900,7 @@ function createField() {
   // while the gate stands, only its curtain answers
   addEventListener('click', (e) => {
     if (reduce || e.target.closest('a, button')) return;
-    const at = { x: (e.clientX / innerWidth) * 2 - 1, y: 1 - (e.clientY / innerHeight) * 2 };
+    const at = { x: (e.clientX / view.w) * 2 - 1, y: 1 - (e.clientY / view.h) * 2 };
     if (1 - Math.abs(state.morph - 3) > 0.5) {
       gate.click(at);
       return;
@@ -923,8 +927,8 @@ function createField() {
       if (Math.abs(dy) > Math.abs(dx)) touch.scroll = true;
       else touch.on = true;
     }
-    touch.x = (t.clientX / innerWidth) * 2 - 1;
-    touch.y = 1 - (t.clientY / innerHeight) * 2;
+    touch.x = (t.clientX / view.w) * 2 - 1;
+    touch.y = 1 - (t.clientY / view.h) * 2;
   };
   addEventListener('touchstart', onTouch, { passive: true });
   addEventListener('touchmove', onTouch, { passive: true });
@@ -1520,35 +1524,83 @@ function createField() {
   function placeEndLine() {
     const stage = endCap && endCap.closest('.stage');
     if (!mobile || !stage) return;
-    const h = innerHeight, half = camZ * uniforms.uTanHalf.value; // half the screen's height, in world units at the line
+    const h = view.frame, half = camZ * uniforms.uTanHalf.value; // half the framed height, in world units at the line
     const rest = (h * (1 - LY / half)) / 2; // where the line rests, in pixels from the top
     const under = endCap.getBoundingClientRect().bottom - stage.getBoundingClientRect().top + 30; // the stage pins at the top
     const y = Math.min(Math.max(rest, under), h - 20);
     uniforms.uEndDY.value = half * (1 - (2 * y) / h) - LY;
   }
 
+  // The drawing's sharpness follows the device, as WebGL sites commonly do (drei's PerformanceMonitor and AdaptiveDpr):
+  // after the opening has settled, frames are timed over spans of two seconds, and where many come late the canvas
+  // draws at a lower pixel ratio, one step at a time. A step that doesn't bring the frames faster (a screen held to 30
+  // a second, as in an iPhone's Low Power Mode, or time spent elsewhere) is undone, and the pace is left alone from then.
+  const ratios = () => {
+    const sharpest = Math.min(2, devicePixelRatio || 1); // (read afresh: zooming changes it)
+    return [sharpest, 1.5, 1.25].filter((r, i) => !i || r < sharpest);
+  };
+  const pace = { at: 0, wait: 4, span: 0, n: 0, late: 0, before: 0, done: false };
+  function keepPace(raw) {
+    if (pace.done || document.hidden || raw > 0.25) return; // (a stall or a hidden tab says nothing of the device)
+    if ((pace.wait -= raw) > 0) return;
+    pace.span += raw;
+    pace.n++;
+    if (raw > 1 / 48) pace.late++;
+    if (pace.span < 2) return;
+    const fps = pace.n / pace.span, late = pace.late / pace.n;
+    Object.assign(pace, { span: 0, n: 0, late: 0 });
+    if (pace.before) {
+      const better = fps > pace.before * 1.1;
+      pace.before = 0;
+      if (!better) {
+        pace.at--;
+        pace.done = true;
+        resize(true);
+        return;
+      }
+    }
+    if (late > 0.2 && pace.at < ratios().length - 1) {
+      pace.before = fps;
+      pace.at++;
+      resize(true);
+    }
+  }
+
+  // On a phone the browser's toolbar slides away as the page scrolls, and the window's height changes with it. The
+  // canvas is as tall as the screen gets (100lvh in the stylesheet), so it keeps its size, and the scene stays framed
+  // for the screen with the toolbar shown (100svh, read from a probe): nothing in it jumps or stretches, and the strip
+  // the toolbar leaves shows a little more of the scene below. So the window's resizes are let pass unless the canvas
+  // itself changes, as when the phone turns. (On a computer the three heights are the same.)
+  const small = document.createElement('div');
+  small.style.cssText = 'position:fixed;top:0;left:0;width:0;height:100vh;height:100svh;visibility:hidden;pointer-events:none';
+  document.body.appendChild(small);
   let focusD = 7;
-  function resize() {
-    const w = innerWidth, h = innerHeight, dpr = Math.min(2, devicePixelRatio || 1);
+  function resize(force) {
+    const w = canvas.clientWidth || innerWidth, h = canvas.clientHeight || innerHeight, frame = Math.min(h, small.clientHeight || h);
+    const ladder = ratios(), dpr = ladder[Math.min(pace.at, ladder.length - 1)];
+    if (force !== true && w === view.w && h === view.h && frame === view.frame && dpr === view.dpr) return;
+    Object.assign(view, { w, h, frame, dpr });
     renderer.setPixelRatio(dpr);
     renderer.setSize(w, h, false);
-    camera.aspect = w / h;
-    uniforms.uAspect.value = camera.aspect;
-    camZ = w < h ? 12 : 9;
+    // framed for w × frame; the canvas runs on below it
+    if (frame < h) camera.setViewOffset(w, frame, 0, 0, w, h);
+    else camera.clearViewOffset();
+    camera.aspect = w / frame;
+    uniforms.uAspect.value = w / h; // (the canvas's own shape, for rings drawn on it)
+    camZ = w < frame ? 12 : 9;
     camera.position.z = camZ;
     // chapter 4's close view: the portal and its steps fill the height (on phones, the frame fills the width)
     const tanH = uniforms.uTanHalf.value;
     focusD = Math.max((3.78 * GS * 1.24) / 2 / tanH, ((mobile ? 2.9 : 5) * GS * 1.08) / 2 / (tanH * camera.aspect));
     camera.updateProjectionMatrix();
-    uniforms.uPixel.value = (h * dpr / 2) / Math.tan(THREE.MathUtils.degToRad(camera.fov / 2));
+    uniforms.uPixel.value = (frame * dpr / 2) / Math.tan(THREE.MathUtils.degToRad(camera.fov / 2));
     makeField();
+    placeEndLine();
     dirty = true;
   }
-  resize();
+  resize(true);
   addEventListener('resize', resize);
   // (and the closing line's place on phones, again once the words have their final size)
-  placeEndLine();
-  addEventListener('resize', placeEndLine);
   document.fonts?.ready.then(placeEndLine);
   addEventListener('load', placeEndLine);
 
@@ -1564,8 +1616,9 @@ function createField() {
     tick(now);
   }
   function tick(now) {
-    const dt = Math.min(0.05, (now - last) / 1000);
+    const raw = (now - last) / 1000, dt = Math.min(0.05, raw);
     last = now;
+    keepPace(raw);
     readAudio(dt);
     listen(dt);
     if (reduce && !dirty && level < 0.001) return; // nothing changed: skip the draw
@@ -1611,7 +1664,7 @@ function createField() {
         if (!hand.on) Object.assign(hand, { x: ptr.x, y: ptr.y, vx: 0, vy: 0, on: true });
         const nx = hand.x + (ptr.x - hand.x) * ease(dt, 0.09), ny = hand.y + (ptr.y - hand.y) * ease(dt, 0.09);
         const k = ease(dt, 0.08), step = Math.max(dt, 1e-3);
-        hand.vx += (((nx - hand.x) * camera.aspect) / step - hand.vx) * k;
+        hand.vx += (((nx - hand.x) * screenAspect()) / step - hand.vx) * k;
         hand.vy += ((ny - hand.y) / step - hand.vy) * k;
         hand.x = nx;
         hand.y = ny;
@@ -1670,9 +1723,10 @@ function ensureAudio() {
   limiter.release.value = 0.25;
   master.connect(limiter).connect(ctx.destination);
 
-  // A shared room: a soft, darkening reverb tail
+  // A shared room: a soft, darkening reverb tail. Building it is the heaviest part of starting the sound, so it waits
+  // until the page has drawn the frame after the first touch; the sound fades in slower than that.
   const verb = ctx.createConvolver();
-  verb.buffer = impulse(ctx, 3.4);
+  requestAnimationFrame(() => setTimeout(() => { verb.buffer = impulse(ctx, 3.4); }, 0));
   const verbOut = ctx.createGain();
   verbOut.gain.value = 0.55;
   verb.connect(verbOut).connect(master);
@@ -1726,6 +1780,21 @@ function ensureAudio() {
   chimeBus.connect(master);
   send(chimeBus, 0.6);
 
+  // The sphere's reply (chapter 6) has a bus of its own with a ceiling, so however many of its notes ring together
+  // it stays about as loud as the score, never well above it. (A compressor also lifts everything by a make-up gain
+  // of its own; the trim takes that back off, so below the ceiling the reply passes unchanged.)
+  const REPLY_CEIL = -25; // dBFS
+  const reply = ctx.createGain();
+  const ceiling = ctx.createDynamicsCompressor();
+  ceiling.threshold.value = REPLY_CEIL;
+  ceiling.knee.value = 0;
+  ceiling.ratio.value = 20;
+  ceiling.attack.value = 0.002;
+  ceiling.release.value = 0.3;
+  const trim = ctx.createGain();
+  trim.gain.value = Math.pow(10, (0.6 * REPLY_CEIL * (1 - 1 / 20)) / 20);
+  reply.connect(ceiling).connect(trim).connect(chimeBus);
+
   // The curtain's glass chimes (chapter 4), on their own brighter bus, with a short burst of noise for each touch.
   // The bus fades with the curtain, so once the viewer has passed through, nothing of it rings on.
   const bellBus = ctx.createBiquadFilter();
@@ -1763,7 +1832,7 @@ function ensureAudio() {
   mute.gain.value = 0;
   voices.connect(analyser).connect(mute).connect(ctx.destination); // keeps the analyser running everywhere
 
-  Object.assign(audio, { ctx, master, pad, padTone, padHP, banks, chimeBus, bellBus, bellFade, noise, round, lostTone, lostBus, lostVerb, analyser, data: new Uint8Array(analyser.frequencyBinCount) });
+  Object.assign(audio, { ctx, master, pad, padTone, padHP, banks, chimeBus, reply, bellBus, bellFade, noise, round, lostTone, lostBus, lostVerb, analyser, data: new Uint8Array(analyser.frequencyBinCount) });
 }
 
 function impulse(ctx, seconds) {
@@ -2413,8 +2482,10 @@ function songOf(notes, chordOf) {
 // Turn back to the phrase's start, then play it a little slower than it was spoken, so quick syllables become a
 // melody: the quicker the speech, the more (from 1.25 to 1.5 times), easing off over the last part as a sung phrase
 // does. The sphere turns at the playing's pace, so each note sounds as its moment of the engraving passes the front.
-// The piano sings the reply softly over a swell of the score's pad, each chord's root low as the song enters it and a
-// harmony beneath the held notes.
+// The piano sings the reply softly over the score's pad, back at its usual level for the moment, each chord's root low as
+// the song enters it and a harmony beneath the held notes. It is about as loud as the score, and the reply bus's ceiling
+// keeps it so however dense the song gets; how loudly the visitor spoke changes nothing (the root stays outside the
+// ceiling, so its weight doesn't press the melody down where a phone's speaker can't play it).
 function singBack(phrase) {
   const notes = melodyOf(phrase);
   if (!notes.length) return;
@@ -2438,16 +2509,16 @@ function singBack(phrase) {
   const song = songOf(notes, (t) => chordAt(when(t)));
   if (!lost.active) {
     hold(audio.pad.gain, ctx.currentTime);
-    audio.pad.gain.setTargetAtTime(Math.max(audio.padTarget, 0.085), ctx.currentTime + 0.3, 0.5);
+    audio.pad.gain.setTargetAtTime(Math.max(audio.padTarget, DRONE[6]), ctx.currentTime + 0.3, 0.5);
     audio.pad.gain.setTargetAtTime(audio.padTarget, when(L) + 1.2, 1.4);
   }
   song.forEach((nt, i) => {
     const at = when(nt.at);
-    if (!i || nt.ch !== song[i - 1].ch) piano(nt.ch.root < 45 ? nt.ch.root + 12 : nt.ch.root, 0.032, at, audio.chimeBus, 0.02);
-    piano(nt.m, 0.05, at, audio.chimeBus, 0.02);
+    if (!i || nt.ch !== song[i - 1].ch) piano(nt.ch.root < 45 ? nt.ch.root + 12 : nt.ch.root, 0.008, at, audio.chimeBus, 0.02);
+    piano(nt.m, 0.0125, at, audio.reply, 0.02);
     if (!nt.held) return;
     const below = notesFor(nt.ch, 52, nt.m - 3).filter((x) => isTone(nt.ch, x) && nt.m - x <= 9);
-    if (below.length) piano(below[below.length - 1], 0.025, at + 0.012, audio.chimeBus, 0.02);
+    if (below.length) piano(below[below.length - 1], 0.00625, at + 0.012, audio.reply, 0.02);
   });
 }
 
@@ -2751,8 +2822,16 @@ function buildTimelines() {
     state.peaks += (ease(tPeaks.progress) * (1 - p[4]) - state.peaks) * k(0.6);
     // centred at the opening and the end; in between, the camera turns left so the shapes clear the text column
     state.look += (-0.5 * ease(t1.progress) * (1 - pEnd) - state.look) * k(0.7);
-    root.style.setProperty('--side', ((-state.look / 0.5) * (1 - state.focus)).toFixed(3));
-    root.style.setProperty('--focus', state.focus.toFixed(3));
+    setVar('--side', ((-state.look / 0.5) * (1 - state.focus)).toFixed(3));
+    setVar('--focus', state.focus.toFixed(3));
+  };
+  // (they are set on the vignette, the only thing that reads them, and only when they change, so the rest of the page
+  // isn't restyled every frame)
+  const vignette = document.querySelector('.vignette'), vars = {};
+  const setVar = (name, value) => {
+    if (vars[name] === value) return;
+    vars[name] = value;
+    vignette.style.setProperty(name, value);
   };
   gsap.ticker.add((time, deltaMs) => follow(Math.min(0.1, deltaMs / 1000)));
 

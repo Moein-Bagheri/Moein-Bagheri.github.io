@@ -184,10 +184,15 @@
   // labels are measured to keep them apart, so measure again once the fonts have arrived
   if (document.fonts) document.fonts.ready.then(layout);
   select('nlp');
-  let raf = 0;
+  // (only when the map itself changes size: on a phone the window resizes each time the toolbar slides away)
+  let raf = 0, size = `${map.clientWidth}x${map.clientHeight}`;
   addEventListener('resize', () => {
     cancelAnimationFrame(raf);
-    raf = requestAnimationFrame(layout);
+    raf = requestAnimationFrame(() => {
+      const now = `${map.clientWidth}x${map.clientHeight}`;
+      if (now !== size) layout();
+      size = now;
+    });
   });
   // On narrow screens the map scrolls sideways; open it where the roads meet
   const scroller = map.parentElement;
