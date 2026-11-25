@@ -1532,14 +1532,16 @@ function createField() {
   }
 
   // The drawing's sharpness follows the device, as WebGL sites commonly do (drei's PerformanceMonitor and AdaptiveDpr):
-  // after the opening has settled, frames are timed over spans of two seconds, and where many come late the canvas
-  // draws at a lower pixel ratio, one step at a time. A step that doesn't bring the frames faster (a screen held to 30
-  // a second, as in an iPhone's Low Power Mode, or time spent elsewhere) is undone, and the pace is left alone from then.
+  // after the opening has settled, frames are timed over spans of two seconds, and where many come late in two spans
+  // running (not one passing hitch, such as a photo arriving) the canvas draws at a lower pixel ratio, one step at a
+  // time. A step that doesn't bring the frames faster (a screen held to 30 a second, as in an iPhone's Low Power Mode,
+  // or time spent elsewhere) is undone, and the pace is left alone from then. Only the canvas: text and photos keep
+  // the screen's own sharpness.
   const ratios = () => {
     const sharpest = Math.min(2, devicePixelRatio || 1); // (read afresh: zooming changes it)
     return [sharpest, 1.5, 1.25].filter((r, i) => !i || r < sharpest);
   };
-  const pace = { at: 0, wait: 4, span: 0, n: 0, late: 0, before: 0, done: false };
+  const pace = { at: 0, wait: 4, span: 0, n: 0, late: 0, strikes: 0, before: 0, done: false };
   function keepPace(raw) {
     if (pace.done || document.hidden || raw > 0.25) return; // (a stall or a hidden tab says nothing of the device)
     if ((pace.wait -= raw) > 0) return;
@@ -1559,7 +1561,9 @@ function createField() {
         return;
       }
     }
-    if (late > 0.2 && pace.at < ratios().length - 1) {
+    pace.strikes = late > 0.2 ? pace.strikes + 1 : 0;
+    if (pace.strikes >= 2 && pace.at < ratios().length - 1) {
+      pace.strikes = 0;
       pace.before = fps;
       pace.at++;
       resize(true);
@@ -1781,9 +1785,9 @@ function ensureAudio() {
   send(chimeBus, 0.6);
 
   // The sphere's reply (chapter 6) has a bus of its own with a ceiling, so however many of its notes ring together
-  // it stays about as loud as the score, never well above it. (A compressor also lifts everything by a make-up gain
+  // it stays a little above the score, never well above it. (A compressor also lifts everything by a make-up gain
   // of its own; the trim takes that back off, so below the ceiling the reply passes unchanged.)
-  const REPLY_CEIL = -25; // dBFS
+  const REPLY_CEIL = -20; // dBFS
   const reply = ctx.createGain();
   const ceiling = ctx.createDynamicsCompressor();
   ceiling.threshold.value = REPLY_CEIL;
@@ -2483,9 +2487,9 @@ function songOf(notes, chordOf) {
 // melody: the quicker the speech, the more (from 1.25 to 1.5 times), easing off over the last part as a sung phrase
 // does. The sphere turns at the playing's pace, so each note sounds as its moment of the engraving passes the front.
 // The piano sings the reply softly over the score's pad, back at its usual level for the moment, each chord's root low as
-// the song enters it and a harmony beneath the held notes. It is about as loud as the score, and the reply bus's ceiling
-// keeps it so however dense the song gets; how loudly the visitor spoke changes nothing (the root stays outside the
-// ceiling, so its weight doesn't press the melody down where a phone's speaker can't play it).
+// the song enters it and a harmony beneath the held notes. It sits a little above the score (about 5 dB), and the reply
+// bus's ceiling keeps it there however dense the song gets; how loudly the visitor spoke changes nothing (the root stays
+// outside the ceiling, so its weight doesn't press the melody down where a phone's speaker can't play it).
 function singBack(phrase) {
   const notes = melodyOf(phrase);
   if (!notes.length) return;
@@ -2514,11 +2518,11 @@ function singBack(phrase) {
   }
   song.forEach((nt, i) => {
     const at = when(nt.at);
-    if (!i || nt.ch !== song[i - 1].ch) piano(nt.ch.root < 45 ? nt.ch.root + 12 : nt.ch.root, 0.008, at, audio.chimeBus, 0.02);
-    piano(nt.m, 0.0125, at, audio.reply, 0.02);
+    if (!i || nt.ch !== song[i - 1].ch) piano(nt.ch.root < 45 ? nt.ch.root + 12 : nt.ch.root, 0.014, at, audio.chimeBus, 0.02);
+    piano(nt.m, 0.022, at, audio.reply, 0.02);
     if (!nt.held) return;
     const below = notesFor(nt.ch, 52, nt.m - 3).filter((x) => isTone(nt.ch, x) && nt.m - x <= 9);
-    if (below.length) piano(below[below.length - 1], 0.00625, at + 0.012, audio.reply, 0.02);
+    if (below.length) piano(below[below.length - 1], 0.011, at + 0.012, audio.reply, 0.02);
   });
 }
 
